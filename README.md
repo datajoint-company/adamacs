@@ -1,4 +1,4 @@
-# database-main (WORK-IN-PROGRESS)
+# Archtiectures for Data Management and Computational Support (WORK-IN-PROGRESS)
 
 This is the central database architecture for the collaborative research center
 of the [SFB1089](https://sfb1089.de/). It is based on
