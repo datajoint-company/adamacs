@@ -8,6 +8,7 @@ dependencies:
   - pywin32
   - pip
   - pip:
+    - notebook
     - datajoint==0.13.2
     - element-lab==0.1.0b0
     - element-animal==0.1.0b0
