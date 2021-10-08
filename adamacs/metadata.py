@@ -9,7 +9,7 @@ class Subject(dj.Manual):
     # Our Animals are not uniquely identified by their ID
     # because different labs use different animal facilities.
     subject                 : varchar(32)
-    # -> Lab
+    -> Lab
     ---
     sex                     : enum('M', 'F', 'U')
     subject_birth_date      : date
