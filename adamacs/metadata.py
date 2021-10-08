@@ -4,23 +4,22 @@ schema = dj.schema()
 
 @schema
 class Subject(dj.Manual):
-
     definition = """
     # Animal Subject
     # Our Animals are not uniquely identified by their ID
     # because different labs use different animal facilities.
     subject                 : varchar(32)
-    -> Lab
+    # -> Lab
     ---
     sex                     : enum('M', 'F', 'U')
     subject_birth_date      : date
     subject_description=''  : varchar(1024)
-    [nullable] cull_date    : date
-    [nullable] cull_method  : varchar(1024)
-    -> Line
-    -> User
-    -> Protocol
-    -> Project
+    # [nullable] cull_date    : date
+    # [nullable] cull_method  : varchar(1024)
+    # -> Line
+    # -> User
+    # -> Protocol
+    # -> Project
     """
 
 @schema
@@ -58,7 +57,7 @@ class Protocol(dj.Lookup):
     # protocol approved by some institutions like IACUC, IRB
     protocol                : varchar(16)
     ---
-    -> ProtocolType
+    # -> ProtocolType
     protocol_description=''        : varchar(255)
     """
 
