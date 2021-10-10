@@ -2,6 +2,34 @@ import datajoint as dj
 
 schema = dj.schema()
 
+#     
+# [nullable] cull_date    : date
+# [nullable] cull_method  : varchar(1024)
+# -> Line
+# -> User
+# -> Protocol
+# -> Project
+
+@schema
+class Lab(dj.Manual):
+    definition = """
+    lab             : varchar(24)  #  Abbreviated lab name 
+    ---
+    lab_name        : varchar(255)   # full lab name
+    institution     : varchar(255)
+    address         : varchar(255)
+    time_zone       : varchar(64)
+    """
+
+@schema
+class Protocol(dj.Lookup):
+    definition = """
+    # protocol approved by some institutions like IACUC, IRB
+    protocol                : varchar(16)
+    ---
+    protocol_description=''        : varchar(255)
+    """
+
 @schema
 class Subject(dj.Manual):
     definition = """
@@ -14,23 +42,20 @@ class Subject(dj.Manual):
     sex                     : enum('M', 'F', 'U')
     subject_birth_date      : date
     subject_description=''  : varchar(1024)
-    # [nullable] cull_date    : date
-    # [nullable] cull_method  : varchar(1024)
-    # -> Line
-    # -> User
-    # -> Protocol
-    # -> Project
     """
+    class Protocol(dj.Part):
+        definition = """
+        -> master
+        -> Protocol
+        """
 
 @schema
-class Lab(dj.Manual):
+class SubjectDeath(dj.Manual):
     definition = """
-    lab             : varchar(24)  #  Abbreviated lab name 
+    -> Subject
     ---
-    lab_name        : varchar(255)   # full lab name
-    institution     : varchar(255)
-    address         : varchar(255)
-    time_zone       : varchar(64)
+    death_date      : date       # death date
+    cull_method:    varchar(255)
     """
 
 @schema
@@ -49,16 +74,6 @@ class User(dj.Lookup):
     user                : varchar(32)
     ---
     -> Lab
-    """
-
-@schema
-class Protocol(dj.Lookup):
-    definition = """
-    # protocol approved by some institutions like IACUC, IRB
-    protocol                : varchar(16)
-    ---
-    # -> ProtocolType
-    protocol_description=''        : varchar(255)
     """
 
 @schema
