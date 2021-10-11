@@ -2,33 +2,40 @@ import datajoint as dj
 
 schema = dj.schema()
 
-#     
-# [nullable] cull_date    : date
-# [nullable] cull_method  : varchar(1024)
-# -> Line
-# -> User
-# -> Protocol
-# -> Project
 
 @schema
 class Lab(dj.Manual):
     definition = """
-    lab             : varchar(24)  #  Abbreviated lab name 
+    lab             : varchar(8)   # short lab name   
     ---
-    lab_name        : varchar(255)   # full lab name
+    lab_name        : varchar(255)
     institution     : varchar(255)
     address         : varchar(255)
     time_zone       : varchar(64)
     """
 
+
 @schema
-class Protocol(dj.Lookup):
+class Protocol(dj.Manual):
     definition = """
     # protocol approved by some institutions like IACUC, IRB
-    protocol                : varchar(16)
+    protocol                        : varchar(16)
     ---
-    protocol_description=''        : varchar(255)
+    protocol_description=''         : varchar(255)
     """
+
+
+@schema
+class Line(dj.Manual):
+    definition = """
+    # animal line 
+    line                        : varchar(32)
+    ---
+    line_description=N''UL''L         : varchar(255)
+    target_phenotype=NULL         : varchar(255)
+    is_active                   : boolean
+    """
+
 
 @schema
 class Subject(dj.Manual):
@@ -36,18 +43,15 @@ class Subject(dj.Manual):
     # Animal Subject
     # Our Animals are not uniquely identified by their ID
     # because different labs use different animal facilities.
-    subject                 : varchar(32)
+    subject                 : varchar(12)
     -> Lab
     ---
     sex                     : enum('M', 'F', 'U')
     subject_birth_date      : date
     subject_description=''  : varchar(1024)
+    -> Line
     """
-    class Protocol(dj.Part):
-        definition = """
-        -> master
-        -> Protocol
-        """
+
 
 @schema
 class SubjectDeath(dj.Manual):
@@ -58,15 +62,6 @@ class SubjectDeath(dj.Manual):
     cull_method:    varchar(255)
     """
 
-@schema
-class Line(dj.Manual):
-    definition = """
-    line                    : varchar(32)	# abbreviated name for the line
-    ---
-    line_description=''     : varchar(2000)
-    target_phenotype=''     : varchar(255)
-    is_active               : boolean		# whether the line is in active breeding
-    """
 
 @schema
 class User(dj.Lookup):
@@ -76,10 +71,11 @@ class User(dj.Lookup):
     -> Lab
     """
 
+
 @schema
 class Project(dj.Lookup):
     definition = """
     project                 : varchar(32)
     ---
-    project_description=''         : varchar(1024)
+    project_description=''  : varchar(1024)
     """
