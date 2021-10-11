@@ -2,7 +2,6 @@ import datajoint as dj
 
 schema = dj.schema()
 
-
 @schema
 class Lab(dj.Manual):
     definition = """
@@ -31,9 +30,8 @@ class Line(dj.Manual):
     # animal line 
     line                        : varchar(32)
     ---
-    line_description=N''UL''L         : varchar(255)
-    target_phenotype=NULL         : varchar(255)
-    is_active                   : boolean
+    line_description=''         : varchar(255)
+    target_phenotype=''         : varchar(255)
     """
 
 
