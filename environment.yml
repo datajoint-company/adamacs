@@ -9,6 +9,7 @@ dependencies:
   - pip
   - seaborn
   - graphviz
+  - git
   - pip:
     - notebook
     - datajoint==0.13.2
