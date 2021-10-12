@@ -5,7 +5,7 @@ schema = dj.schema()
 @schema
 class Lab(dj.Manual):
     definition = """
-    lab             : varchar(24)     
+    lab             : varchar(8)   # short lab name   
     ---
     lab_name        : varchar(255)
     institution     : varchar(255)
@@ -13,25 +13,27 @@ class Lab(dj.Manual):
     time_zone       : varchar(64)
     """
 
+
 @schema
 class Protocol(dj.Manual):
     definition = """
     # protocol approved by some institutions like IACUC, IRB
     protocol                        : varchar(16)
     ---
-    protocol_description=NULL         : varchar(255)
+    protocol_description=''         : varchar(255)
     """
+
 
 @schema
 class Line(dj.Manual):
     definition = """
-    # protocol approved by some institutions like IACUC, IRB
+    # animal line 
     line                        : varchar(32)
     ---
-    line_description=NULL         : varchar(255)
-    target_phenotype=NULL         : varchar(255)
-    is_active                   : boolean
+    line_description=''         : varchar(255)
+    target_phenotype=''         : varchar(255)
     """
+
 
 @schema
 class Subject(dj.Manual):
@@ -39,7 +41,7 @@ class Subject(dj.Manual):
     # Animal Subject
     # Our Animals are not uniquely identified by their ID
     # because different labs use different animal facilities.
-    subject                 : varchar(32)
+    subject                 : varchar(12)
     -> Lab
     ---
     sex                     : enum('M', 'F', 'U')
@@ -47,6 +49,7 @@ class Subject(dj.Manual):
     subject_description=''  : varchar(1024)
     -> Line
     """
+
 
 @schema
 class SubjectDeath(dj.Manual):
@@ -57,6 +60,7 @@ class SubjectDeath(dj.Manual):
     cull_method:    varchar(255)
     """
 
+
 @schema
 class User(dj.Lookup):
     definition = """
@@ -65,10 +69,11 @@ class User(dj.Lookup):
     -> Lab
     """
 
+
 @schema
 class Project(dj.Lookup):
     definition = """
     project                 : varchar(32)
     ---
-    project_description=''         : varchar(1024)
+    project_description=''  : varchar(1024)
     """

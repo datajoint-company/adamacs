@@ -2,6 +2,7 @@ import importlib
 import inspect
 import datajoint as dj
 
+
 def activate(schema, schema_name, create_schema=True, create_tables=True, linking_module=None):
     """
     activate(schema_name, *, create_schema=True, create_tables=True, linking_module=None)
