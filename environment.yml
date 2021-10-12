@@ -8,6 +8,7 @@ dependencies:
   - pywin32
   - pip
   - seaborn
+  - graphviz
   - pip:
     - notebook
     - datajoint==0.13.2
