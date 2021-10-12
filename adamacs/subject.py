@@ -32,32 +32,7 @@ class Line(dj.Manual):
     ---
     line_description=''         : varchar(255)
     target_phenotype=''         : varchar(255)
-    """
-
-
-@schema
-class Subject(dj.Manual):
-    definition = """
-    # Animal Subject
-    # Our Animals are not uniquely identified by their ID
-    # because different labs use different animal facilities.
-    subject                 : varchar(12)
-    -> Lab
-    ---
-    sex                     : enum('M', 'F', 'U')
-    subject_birth_date      : date
-    subject_description=''  : varchar(1024)
-    -> Line
-    """
-
-
-@schema
-class SubjectDeath(dj.Manual):
-    definition = """
-    -> Subject
-    ---
-    death_date      : date       # death date
-    cull_method:    varchar(255)
+    is_active                      : boolean
     """
 
 
@@ -77,3 +52,32 @@ class Project(dj.Lookup):
     ---
     project_description=''  : varchar(1024)
     """
+
+
+@schema
+class Subject(dj.Manual):
+    definition = """
+    # Animal Subject
+    # Our Animals are not uniquely identified by their ID
+    # because different labs use different animal facilities.
+    subject                 : varchar(12)
+    -> Lab
+    ---
+    sex                     : enum('M', 'F', 'U')
+    subject_birth_date      : date
+    subject_description=''  : varchar(1024)
+    -> Line
+    -> User
+    -> Project
+    """
+
+
+@schema
+class SubjectDeath(dj.Manual):
+    definition = """
+    -> Subject
+    ---
+    death_date      : date       # death date
+    cull_method:    varchar(255)
+    """
+
