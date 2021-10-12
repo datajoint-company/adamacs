@@ -69,6 +69,7 @@ class Subject(dj.Manual):
     -> Line
     -> User
     -> Project
+    -> Protocol
     """
 
 
@@ -78,6 +79,6 @@ class SubjectDeath(dj.Manual):
     -> Subject
     ---
     death_date      : date       # death date
-    cull_method:    varchar(255)
+    cause           :    varchar(255)
     """
 
