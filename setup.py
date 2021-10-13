@@ -21,5 +21,6 @@ setup(
           'numpy',
           'pandas',
           'matplotlib',
-          'scipy'
+          'scipy',
+          'rspace_client'
       ])
