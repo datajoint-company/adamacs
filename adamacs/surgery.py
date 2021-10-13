@@ -40,14 +40,15 @@ class Antagonist(dj.Manual):
 class Surgery(dj.Manual):
     definition = """
     -> Subject
-    date        : date      
+    date              : date      
     ---
-    weight      : float     # subject weight
-    start       : time 
-    finish      : time
+    weight            : float     # subject weight
+    start             : time 
+    finish            : time
     -> User
     -> Anesthesia
-    anesthesia_time : time
+    anesthesia_time   : time
+    anesthesis_volume : float
     """
 
 @schema

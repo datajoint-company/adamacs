@@ -13,3 +13,4 @@ dependencies:
   - pip:
     - notebook
     - datajoint==0.13.2
+    - rspace-client==1.6.0

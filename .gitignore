@@ -1,6 +1,9 @@
 # Datajoint specifics
 dj_local_conf.json
 
+# RSpace credentials and config
+rspace_local_conf.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
