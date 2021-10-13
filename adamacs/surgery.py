@@ -77,7 +77,6 @@ class AnalgesiaSubject(dj.Manual):
     -> Subject
     datetime   : datetime
     ---
-    
     """
 
 
