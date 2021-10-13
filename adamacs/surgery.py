@@ -49,6 +49,9 @@ class Surgery(dj.Manual):
     -> Anesthesia
     anesthesia_time   : time
     anesthesis_volume : float
+    -> Antagonist
+    antagonist_time   : time
+    antagonist_volume : float
     """
 
 @schema
