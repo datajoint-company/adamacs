@@ -1,9 +1,8 @@
-'''Tables related to animal surgery
+"""Tables related to animal surgery
 
 An experimenter might perform one or more surgeries on a mouse. During a surgery, several procedures might be performed. For example, a viral injection at a certain stereotaxic
 coordinate might be followed by a cranial window at different coordinates. Anesthesia is required for a surgery. Analgesia must be given at least once before the surgery but could
-be given multiple times and might also be given after a surgery or might be associated with other procedures.'''
-
+be given multiple times and might also be given after a surgery or might be associated with other procedures."""
 import datajoint as dj
 from adamacs.subject import *
 
@@ -12,7 +11,7 @@ schema = dj.schema()
 @schema
 class Anesthesia(dj.Manual):
     definition = """
-    name        : varchar(16)
+    anesthesia        : varchar(16)
     ---
     long_name   : varchar(300)
     """
@@ -21,16 +20,17 @@ class Anesthesia(dj.Manual):
 @schema
 class Analgesia(dj.Manual):
     definition = """
-    name        : varchar(16) 
+    analgesia        : varchar(16) 
     ---
     long_name   : varchar(300)
     """
+
 
 @schema
 class Antagonist(dj.Manual):
     definition = """
     # The compound used to counter the anesthetic after surgery
-    name        : varchar(16)
+    antagonist        : varchar(16)
     ---
     long_name   : varchar(300)
     """
@@ -43,8 +43,6 @@ class Surgery(dj.Manual):
     date              : date      
     ---
     weight            : float     # subject weight
-    start             : time 
-    finish            : time
     -> User
     -> Anesthesia
     anesthesia_time   : time
@@ -53,6 +51,7 @@ class Surgery(dj.Manual):
     antagonist_time   : time
     antagonist_volume : float
     """
+
 
 @schema
 class SurgeryNote(dj.Manual):
@@ -94,6 +93,7 @@ class Coordinates(dj.Manual):
     z_coordinate    : float  # in mm
     description=''  : varchar(300)
     """
+
 
 @schema
 class ViralInjection(dj.Manual):

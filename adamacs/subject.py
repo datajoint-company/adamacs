@@ -28,10 +28,10 @@ class Protocol(dj.Manual):
 class Line(dj.Manual):
     definition = """
     # animal line 
-    line                        : varchar(16)
+    line                        : varchar(32)
     ---
     line_description=''         : varchar(255)
-    target_phenotype=''         : varchar(255)
+    target_genotype=''          : varchar(255)
     is_active                   : boolean
     """
 
@@ -39,19 +39,11 @@ class Line(dj.Manual):
 @schema
 class Mutation(dj.Manual):
     definition = """
-    # animal line 
+    # The mutations of animal lines
+    -> Line
     mutation                    : varchar(32)
     ---
-    description=''              : varchar(255)
-    """
-
-
-@schema
-class LineMutation(dj.Manual):
-    definition = """
-    -> Mutation
-    -> Line
-    ---
+    description=''              : varchar(2000)
     """
 
 
@@ -87,7 +79,6 @@ class Subject(dj.Manual):
     birth_date              : date
     subject_description=''  : varchar(1024)
     -> Line
-    -> SubjectGenotype
     -> User
     -> Project
     -> Protocol
