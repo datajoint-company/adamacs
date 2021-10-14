@@ -1,8 +1,13 @@
 """Tables related to animal surgery
 
-An experimenter might perform one or more surgeries on a mouse. During a surgery, several procedures might be performed. For example, a viral injection at a certain stereotaxic
-coordinate might be followed by a cranial window at different coordinates. Anesthesia is required for a surgery. Analgesia must be given at least once before the surgery but could
-be given multiple times and might also be given after a surgery or might be associated with other procedures."""
+A User might perform one or more surgeries on a mouse.
+During a surgery, several procedures might be performed. For
+example, a viral injection at a certain stereotaxic coordinate
+might be followed by a cranial window at different coordinates.
+Anesthesia is required for a surgery. Analgesia must be given at
+least once before the surgery but could be given multiple times
+and might also be given after a surgery or might be associated
+with other procedures."""
 import datajoint as dj
 from adamacs.subject import *
 
