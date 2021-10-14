@@ -28,11 +28,30 @@ class Protocol(dj.Manual):
 class Line(dj.Manual):
     definition = """
     # animal line 
-    line                        : varchar(32)
+    line                        : varchar(16)
     ---
     line_description=''         : varchar(255)
     target_phenotype=''         : varchar(255)
-    is_active                      : boolean
+    is_active                   : boolean
+    """
+
+
+@schema
+class Mutation(dj.Manual):
+    definition = """
+    # animal line 
+    mutation                    : varchar(32)
+    ---
+    description=''              : varchar(255)
+    """
+
+
+@schema
+class LineMutation(dj.Manual):
+    definition = """
+    -> Mutation
+    -> Line
+    ---
     """
 
 
@@ -60,16 +79,28 @@ class Subject(dj.Manual):
     # Animal Subject
     # Our Animals are not uniquely identified by their ID
     # because different labs use different animal facilities.
-    subject                 : varchar(12)
+    subject                 : varchar(16)
     -> Lab
     ---
+    lab_id=''               : varchar(16)
     sex                     : enum('M', 'F', 'U')
-    subject_birth_date      : date
+    birth_date              : date
     subject_description=''  : varchar(1024)
     -> Line
+    -> SubjectGenotype
     -> User
     -> Project
     -> Protocol
+    """
+
+
+@schema
+class SubjectGenotype(dj.Manual):
+    definition = """
+    -> Subject
+    -> Mutation
+    ---
+    genotype        : enum('wt/wt', 'wt/tg', 'tg/wt', 'tg/tg')
     """
 
 
