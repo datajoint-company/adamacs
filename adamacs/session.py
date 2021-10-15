@@ -1,18 +1,20 @@
 """Tables related to a session.
 
-During a session, a user acquires data from a single animal.
+During a Session, a user acquires data from a single animal.
+Data is acquired during multiple Recordings.
 The exact kinds of data acquired depend on a variety of factors
 and might change over time.
 """
 
 import datajoint as dj
+from adamacs import subject
 
 schema = dj.schema()
 
 @schema
 class Session(dj.Manual):
     definition = """
-    -> Subject
+    -> subject.Subject
     session_datetime: datetime(3)
     """
 
@@ -21,21 +23,24 @@ class Session(dj.Manual):
 class SessionUser(dj.Manual):
     definition = """
     -> Session
-    -> User
+    -> subject.User
     """
 
+
 @schema
-class SessionDirectory(dj.Manual):
+class Recording(dj.Manual):
     definition = """
     -> Session
+    recording                : tinyint unsigned
     ---
-    session_dir: varchar(256)       # Path to the data directory for a particular session
+    recording_dir            : varchar(1000)       # Path to the data directory for a particular session
     """
 
 
 @schema
 class ProjectSession(dj.Manual):
     definition = """
-    -> Project
+    -> subject.Project
     -> Session
     """
+

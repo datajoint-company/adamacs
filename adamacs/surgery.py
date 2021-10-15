@@ -9,7 +9,7 @@ least once before the surgery but could be given multiple times
 and might also be given after a surgery or might be associated
 with other procedures."""
 import datajoint as dj
-from adamacs.subject import *
+from adamacs import subject
 
 schema = dj.schema()
 
@@ -44,11 +44,11 @@ class Antagonist(dj.Manual):
 @schema
 class Surgery(dj.Manual):
     definition = """
-    -> Subject
+    -> subject.Subject
     date              : date      
     ---
     weight            : float     # subject weight
-    -> User
+    -> subject.User
     -> Anesthesia
     anesthesia_time   : time
     anesthesis_volume : float
@@ -82,7 +82,7 @@ class Virus(dj.Manual):
 class AnalgesiaSubject(dj.Manual):
     definition = """
     -> Analgesia
-    -> Subject
+    -> subject.Subject
     datetime   : datetime
     ---
     """
