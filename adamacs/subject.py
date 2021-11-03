@@ -10,7 +10,7 @@ class Lab(dj.Manual):
     lab_name        : varchar(255)
     institution     : varchar(255)
     address         : varchar(255)
-    time_zone       : varchar(64)
+    time_zone       : varchar(64)  # If all labs in Bonn, could drop
     """
 
 
@@ -69,10 +69,15 @@ class Project(dj.Lookup):
 class Subject(dj.Manual):
     definition = """
     # Animal Subject
+    # Our Animals are not uniquely identified by their ID
+    # because different labs use different animal facilities.
+    # CB: I see cage as an item in PyRAT export - relevant in analysis?
+
+
+    
     subject                 : varchar(16)
-    ---
     -> Lab
-    # lab_id corresponds to earmeark, is given by the lab.
+    ---
     lab_id=''               : varchar(16)
     sex                     : enum('M', 'F', 'U')
     birth_date              : date
@@ -90,7 +95,7 @@ class SubjectGenotype(dj.Manual):
     -> Subject
     -> Mutation
     ---
-    genotype        : enum('wt/wt', 'wt/tg', 'tg/wt', 'tg/tg', 'unknown')
+    genotype        : enum('wt/wt', 'wt/tg', 'tg/wt', 'tg/tg')
     """
 
 

@@ -9,9 +9,14 @@ least once before the surgery but could be given multiple times
 and might also be given after a surgery or might be associated
 with other procedures."""
 import datajoint as dj
-from adamacs import subject
-
 schema = dj.schema()
+
+from adamacs import subject
+from adamacs import rspace
+try:
+    client=rspace.connect()
+except FileNotFoundError:
+    print("Please configure RSpace for auto-populating surgery information")
 
 @schema
 class Anesthesia(dj.Manual):
@@ -56,7 +61,12 @@ class Surgery(dj.Manual):
     antagonist_time   : time
     antagonist_volume : float
     """
-
+    def make(self, key): #placeholder for RSpace query -> datajoint table
+        rspace_doc = client.get_documents(query='Filename_{}'.format(key))
+        surgery_data = rspace_doc['contents'] 
+        self.insert1()
+        # Which other tables below will be populated from RSpace?
+        # If any, consider making dj.Part tables to share the same RSpace query
 
 @schema
 class SurgeryNote(dj.Manual):
@@ -65,7 +75,6 @@ class SurgeryNote(dj.Manual):
     ---
     note    : varchar(30000)
     """
-
 
 @schema
 class Virus(dj.Manual):
@@ -86,7 +95,6 @@ class AnalgesiaSubject(dj.Manual):
     datetime   : datetime
     ---
     """
-
 
 @schema
 class Coordinates(dj.Manual):
