@@ -108,8 +108,8 @@ class BehaviorIngest(dj.Imported):
 
 		for file in os.listdir(bpod_dir): if filename.endswith(".mat"):
 			trial_info = load_bpod_matfile(key, bpod_dir + file)
-		schema.Trial.insert(trial_info,ignore_extra_fields=True)
-		schema.Event.insert(trial_info,ignore_extra_fields=True)
+		Trial.insert(trial_info, ignore_extra_fields=True)
+		Event.insert(trial_info, ignore_extra_fields=True)
 
 # --------------------- HELPER LOADER FUNCTIONS -----------------
 
