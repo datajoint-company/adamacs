@@ -8,7 +8,7 @@ raw data and relates them to the Recording.
 import datajoint as dj
 import element_data_loader.utils #github.com/datajoint/element-data-loader
 
-import scipy.io as sio
+import scipy.io as spio
 import numpy as np
 import pathlib
 from adamacs import db_prefix, session
@@ -25,7 +25,6 @@ class RecordingBpod(dj.Manual):
 	recording_dir : varchar(1024) # Path to the data directory for a particular session
 	"""
 
-
 @schema
 class TrialType(dj.Lookup):
 	definition = """
@@ -34,36 +33,17 @@ class TrialType(dj.Lookup):
 	trial_type_description: varchar(256)
 	"""
 
-# CB modeled after example bpod datastructure
-# each recording has a list of trials
-
-
 @schema
 class Trial(dj.Imported):
 	definition = """
+	# CB modeled after example bpod datastructure
+	# each recording has a list of trials
 	-> session.Recording
 	trial : smallint # trial number (1-based indexing)
 	---
-	start_time : float  # (second) relative to the start of the recording 
+	start_time : float  # (second) relative to the start of the recording
 	stop_time :  float  # (second) relative to the start of the recording
-	"""	
-
-	def make(self, key): # reading bpod data to populate
-		# could model dir navigation after element_array_ephys
-		# which uses config file and relative paths
-		bpod_root_dir = pathlib.Path(get_beh_root_dir(key))
-		bpod_sess_dir = pathlib.Path(get_beh_sess_dir(key))
-		bpod_dir = find_full_path(bpod_root_dir,bpod_sess_dir)
-
-		for file in os.listdir(bpod_dir): if filename.endswith(".mat"):
-			# exp65533_AN_210627_1_MWM_20210808_155428.mat
-			# experiment##_Initials_ProtocolDate_SubjID?
-			bpod_file = sio.loadmat(file)['SessionData']
-			for trial in np.arange(0,bpod_file['nTrials'][0][0][0][0])
-				key['trial']=trial #currently zero-indexed
-				key['start_time'] = bpod_file['TrialStartTimestamp'][0][0][0][trial]
-				key['stop_time'] = bpod_file['TrialEndTimestamp'][0][0][0][trial]
-				self.insert1(**key)
+	"""
 
 
 @schema
@@ -81,7 +61,7 @@ class EventType(dj.Lookup):
 class Event(dj.Imported):
 	definition = """
 	-> session.Recording
-	-> EventType 
+	-> EventType
 	event_start_time: decimal(8, 4)   # (s) from recording start
 	---
 	event_end_time=null: decimal(8, 4)   # (s) from recording start
@@ -91,20 +71,20 @@ class Event(dj.Imported):
 @schema
 class TrialEvent(dj.Imported):
 	definition = """
-	-> Trial 
+	-> Trial
 	-> Event
 	"""
-	
-	
+
+
 @schema
 class BehaviorTrial(dj.Imported):
 	definition = """
-	-> Trial 
+	-> Trial
 	---
 	-> TrialType
 	-> Outcome
 	"""
-	
+
 	class TrialVariable(dj.Part):
 		definition = """
 		-> master
@@ -113,8 +93,50 @@ class BehaviorTrial(dj.Imported):
 		variable_value: varchar(2000)
 		"""
 
+@schema
+class BehaviorIngest(dj.Imported):
+	definition = """
+	-> session.Recording
+	"""
+  @property
+  def key_source(self): #opional means of subsetting or reordering keys worth ingesting
+  	good_records = session.Recording.fetch('KEY') #& session.Qualitycontrol
+  	return good_records
 
-''' NOTES:
+	def make(self, key): # reading bpod data to populate
+		# could model dir navigation after element_array_ephys
+		# which uses config file for root dir and csv for relative paths
+		# https://github.com/datajoint/workflow-array-ephys/blob/main/workflow_array_ephys/paths.py
+		bpod_root_dir = pathlib.Path(get_beh_root_dir(key))
+		bpod_sess_dir = pathlib.Path(get_beh_sess_dir(key))
+		bpod_dir = find_full_path(bpod_root_dir,bpod_sess_dir)
+
+		for file in os.listdir(bpod_dir): if filename.endswith(".mat"):
+			trial_info = load_bpod_matfile(key, bpod_dir + file)
+		schema.Trial.insert(trial_info,ignore_extra_fields=True)
+		schema.Event.insert(trial_info,ignore_extra_fields=True)
+
+# --------------------- HELPER LOADER FUNCTIONS -----------------
+
+# see full example here:
+# https://github.com/mesoscale-activity-map/map-ephys/blob/master/pipeline/ingest/behavior.py
+
+def load_bpod_matfile(key, matlab_filepath):
+	"""
+	Loading routine for behavioral file, bpod .mat
+	"""
+	#Loading the file
+	SessionData = spio.loadmat(matlab_filepath.as_posix(),
+                            squeeze_me=True, struct_as_record=False)['SessionData']
+
+	# Add to dict for insertion
+  for trial in range(SessionData.nTrials):
+  	trial_info['start_time'] = SessionData.RawData.OriginalEventTimestamps[trial]
+
+  return trial_info
+
+
+''' NOTES on bpod example file:
 bpod SessionData structure
 	TrialTypes - 1,2,3,1,2,3
 	TrialTypeNames - Visibile,Visible,Fading
