@@ -11,9 +11,11 @@ import element_data_loader.utils #github.com/datajoint/element-data-loader
 import scipy.io as sio
 import numpy as np
 import pathlib
-from adamacs import session
+from adamacs import db_prefix, session
 
-schema = dj.schema()
+
+schema = dj.schema(db_prefix + 'behavior')
+
 
 @schema
 class RecordingBpod(dj.Manual):
@@ -23,16 +25,18 @@ class RecordingBpod(dj.Manual):
 	recording_dir : varchar(1024) # Path to the data directory for a particular session
 	"""
 
+
 @schema
 class TrialType(dj.Lookup):
 	definition = """
-	trialtype_id: smallint
+	trial_type: varchar(16)
 	---
-	tialtype_name: varchar(32)
+	trial_type_description: varchar(256)
 	"""
 
 # CB modeled after example bpod datastructure
 # each recording has a list of trials
+
 
 @schema
 class Trial(dj.Imported):
@@ -40,19 +44,9 @@ class Trial(dj.Imported):
 	-> session.Recording
 	trial : smallint # trial number (1-based indexing)
 	---
-	start_time : datetime 
-	stop_time :  datetime
+	start_time : float  # (second) relative to the start of the recording 
+	stop_time :  float  # (second) relative to the start of the recording
 	"""	
-
-	@schema
-	class Event(dj.Part):
-		definition = """ 
-		-> Session
-		-> Trial
-		event_time: decimal(8, 4)   # (s) from session start
-		---
-		event_states=null : varchar(32)  # see SessionData.TrialN.States  
-		"""
 
 	def make(self, key): # reading bpod data to populate
 		# could model dir navigation after element_array_ephys
@@ -70,6 +64,28 @@ class Trial(dj.Imported):
 				key['start_time'] = bpod_file['TrialStartTimestamp'][0][0][0][trial]
 				key['stop_time'] = bpod_file['TrialEndTimestamp'][0][0][0][trial]
 				self.insert1(**key)
+
+
+@schema
+class EventType(dj.Lookup):
+	definition = """
+	event_type: varchar(16)
+	---
+	event_type_description='': varchar(256)
+	"""
+
+	contents = [('WaitForPosTriggerSoftCode', ''), ('CueDelay', '')]
+
+
+@schema
+class Event(dj.Imported):
+	definition = """
+	-> session.Recording
+	-> EventType 
+	event_start_time: decimal(8, 4)   # (s) from recording start
+	---
+	event_end_time=null: decimal(8, 4)   # (s) from recording start
+	"""
 
 
 @schema
@@ -92,8 +108,11 @@ class BehaviorTrial(dj.Imported):
 	class TrialVariable(dj.Part):
 		definition = """
 		-> master
-		-> Variable
+		variable_name: varchar(16)
+		---
+		variable_value: varchar(2000)
 		"""
+
 
 ''' NOTES:
 bpod SessionData structure
