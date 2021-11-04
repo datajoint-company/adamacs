@@ -106,8 +106,8 @@ class BehaviorIngest(dj.Imported):
 		bpod_sess_dir = pathlib.Path(get_beh_sess_dir(key))
 		bpod_dir = find_full_path(bpod_root_dir,bpod_sess_dir)
 
-		for file in os.listdir(bpod_dir): if filename.endswith(".mat"):
-			trial_info = load_bpod_matfile(key, bpod_dir + file)
+		bpod_filepath = next(bpod_dir.glob('*.mat'))
+		trial_info = load_bpod_matfile(key, bpod_filepath )
 		Trial.insert(trial_info, ignore_extra_fields=True)
 		Event.insert(trial_info, ignore_extra_fields=True)
 
