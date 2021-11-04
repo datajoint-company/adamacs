@@ -98,11 +98,6 @@ class BehaviorIngest(dj.Imported):
 	definition = """
 	-> session.Recording
 	"""
-  @property
-  def key_source(self): #opional means of subsetting or reordering keys worth ingesting
-  	good_records = session.Recording.fetch('KEY') #& session.Qualitycontrol
-  	return good_records
-
 	def make(self, key): # reading bpod data to populate
 		# could model dir navigation after element_array_ephys
 		# which uses config file for root dir and csv for relative paths
