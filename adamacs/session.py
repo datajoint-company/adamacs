@@ -16,6 +16,8 @@ class Session(dj.Manual):
     definition = """
     -> subject.Subject
     session_datetime: datetime(3)
+    ---
+    -> AcquisitionSoftware
     """
 
 
@@ -33,6 +35,8 @@ class Recording(dj.Manual):
     -> Session
     recording                : tinyint unsigned
     ---
+    recording_start_time     : datetime(3)
+    recording_end_time       : datetime(3)              
     recording_dir            : varchar(1000)       # Path to the data directory for a particular session
     """
 
