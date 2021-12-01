@@ -16,28 +16,15 @@ class Session(dj.Manual):
     definition = """
     -> subject.Subject
     session_datetime: datetime(3)
-    ---
-    -> AcquisitionSoftware
     """
 
 
 @schema
-class SessionUser(dj.Manual):
+class SessionDirectory(dj.Manual):
     definition = """
     -> Session
-    -> subject.User
-    """
-
-
-@schema
-class Recording(dj.Manual):
-    definition = """
-    -> Session
-    recording                : tinyint unsigned
     ---
-    recording_start_time     : datetime(3)
-    recording_end_time       : datetime(3)              
-    recording_dir            : varchar(1000)       # Path to the data directory for a particular session
+    session_dir: varchar(256)       # Path to the data directory for a particular session
     """
 
 
@@ -47,4 +34,3 @@ class ProjectSession(dj.Manual):
     -> subject.Project
     -> Session
     """
-

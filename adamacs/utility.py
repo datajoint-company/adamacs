@@ -2,6 +2,9 @@ import importlib
 import inspect
 import datajoint as dj
 import scipy.io as sio
+from . import subject, surgery, session, behavior, imaging, scan
+
+module_list = [subject, surgery, session, behavior, scan, imaging]  # Note that order matters when activating
 
 
 def activate(schema, schema_name, create_schema=True, create_tables=True, linking_module=None):
@@ -25,6 +28,12 @@ def activate(schema, schema_name, create_schema=True, create_tables=True, linkin
     schema.activate(schema_name, create_schema=create_schema,
                     create_tables=create_tables, add_objects=linking_module.__dict__)
     
+def activate_many(schemas=module_list, name='default_schema'):
+    """Activate multiple schemas. By default activates all schemas in utility.module_list"""
+    for module in module_list:
+        module.schema.activate('tutorial', create_schema=True, create_tables=True)
+        # activate(schema, create_schema=True, create_tables=True, schema_name='tutorial', linking_module=schema)
+
 
 def load_bpod_file(file_path):
     mat = sio.loadmat(file_path)

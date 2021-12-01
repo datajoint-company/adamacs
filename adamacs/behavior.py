@@ -8,12 +8,12 @@ raw data and relates them to the Recording.
 import datajoint as dj
 from adamacs import db_prefix, session
 
-schema = dj.schema(db_prefix + 'behavior')
+schema = dj.schema()
 
 @schema
 class RecordingBpod(dj.Manual):
 	definition = """ # CB: Does this recording_dir differ from session.Recording recording_dir?
-	-> session.Recording
+	-> session.Session
 	---
 	recording_dir : varchar(1024) # Path to the data directory for a particular session
 	"""
@@ -31,7 +31,7 @@ class Trial(dj.Imported):
 	definition = """
 	# CB modeled after example bpod datastructure
 	# each recording has a list of trials
-	-> session.Recording
+	-> session.Session
 	trial : smallint # trial number (1-based indexing)
 	---
 	start_time : float  # (second) relative to the start of the recording
@@ -42,7 +42,7 @@ class Trial(dj.Imported):
 @schema
 class EventType(dj.Lookup):
 	definition = """
-	event_type: varchar(16)
+	event_type: varchar(255)
 	---
 	event_type_description='': varchar(256)
 	"""
@@ -53,7 +53,7 @@ class EventType(dj.Lookup):
 @schema
 class Event(dj.Imported):
 	definition = """
-	-> session.Recording
+	-> session.Session
 	-> EventType
 	event_start_time: decimal(8, 4)   # (s) from recording start
 	---
@@ -62,6 +62,7 @@ class Event(dj.Imported):
 
 @schema
 class TrialEvent(dj.Imported):
+
 	definition = """
 	-> Trial
 	-> Event
@@ -73,7 +74,7 @@ class BehaviorTrial(dj.Imported):
 	-> Trial
 	---
 	-> TrialType
-	-> Outcome
+	# -> Outcome
 	"""
 
 	class TrialVariable(dj.Part):

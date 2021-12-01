@@ -9,14 +9,11 @@ least once before the surgery but could be given multiple times
 and might also be given after a surgery or might be associated
 with other procedures."""
 import datajoint as dj
+
 schema = dj.schema()
 
 from adamacs import subject
-from adamacs import rspace
-try:
-    client=rspace.connect()
-except FileNotFoundError:
-    print("Please configure RSpace for auto-populating surgery information")
+# from adamacs import rspace
 
 @schema
 class Anesthesia(dj.Manual):
@@ -86,7 +83,6 @@ class Virus(dj.Manual):
 
     """
 
-
 @schema
 class AnalgesiaSubject(dj.Manual):
     definition = """
@@ -99,7 +95,7 @@ class AnalgesiaSubject(dj.Manual):
 @schema
 class Coordinates(dj.Manual):
     definition = """
-    location        : varchar(16)
+    coordinates        : varchar(32)
     ---
     x_coordinate    : float  # in mm
     y_coordinate    : float  # in mm
