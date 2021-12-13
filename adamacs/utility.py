@@ -33,7 +33,3 @@ def activate_many(schemas=module_list, name='default_schema'):
     for module in module_list:
         module.schema.activate('tutorial', create_schema=True, create_tables=True)
         # activate(schema, create_schema=True, create_tables=True, schema_name='tutorial', linking_module=schema)
-
-
-def load_bpod_file(file_path):
-    mat = sio.loadmat(file_path)
