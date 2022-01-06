@@ -22,5 +22,6 @@ setup(
           'pandas',
           'matplotlib',
           'scipy',
-          'rspace_client'
+          'rspace_client',
+          'element-calcium-imaging @ git+https://github.com/SFB1089/element-calcium-imaging.git@main'
       ])

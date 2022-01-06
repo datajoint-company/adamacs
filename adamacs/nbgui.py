@@ -54,7 +54,7 @@ class MouseEntrySheet(object):
         self.rows = []
         for x in range(self.sheet.rows):
             self.rows.append(ipysheet.row(x, ['']*self.sheet.columns))
-
+        
         self.upload_button = ipywidgets.widgets.Button(
             description='Upload Data',
             disabled=False,
