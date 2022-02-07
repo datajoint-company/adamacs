@@ -1,6 +1,35 @@
 import datajoint as dj
+import importlib
+import inspect
 
 schema = dj.schema()
+_linking_module = None
+
+# ------------------ Activation ------------------
+
+
+def activate(schema_name, create_schema=True, create_tables=True,
+             linking_module=None):
+    """
+    activate(schema_name, create_schema=True, create_tables=True, linking_module=None)
+        :param schema_name: schema name on the database server
+        :param create_schema: when True, create schema if it does not yet exist
+        :param create_tables: when True, create tables if they do not yet exist
+    """
+    if isinstance(linking_module, str):
+        linking_module = importlib.import_module(linking_module)
+    assert inspect.ismodule(linking_module), "The argument 'dependency' must "\
+                                             + "be a module's name or a module"
+
+    global _linking_module
+    _linking_module = linking_module
+
+    schema.activate(schema_name, create_schema=create_schema,
+                    create_tables=create_tables,
+                    add_objects=linking_module.__dict__)
+
+# -------------- Table declarations --------------
+
 
 @schema
 class Lab(dj.Manual):
@@ -75,7 +104,7 @@ class Subject(dj.Manual):
     subject                 : varchar(16)
     ---
     -> Lab
-    earmark=''               : varchar(16)  # aka lab_id
+    earmark=''              : varchar(16)  # aka lab_id
     sex                     : enum('M', 'F', 'U')
     birth_date              : date
     subject_description=''  : varchar(1024)
@@ -104,4 +133,3 @@ class SubjectDeath(dj.Manual):
     death_date      : date       # death date
     cause           :    varchar(255)
     """
-
