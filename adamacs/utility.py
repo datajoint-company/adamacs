@@ -2,9 +2,9 @@ import importlib
 import inspect
 import datajoint as dj
 import scipy.io as sio
-from . import subject, surgery, session, behavior, imaging, scan
+from . import subject, surgery, session, behavior, scan
 
-module_list = [subject, surgery, session, behavior, scan, imaging]  # Note that order matters when activating
+module_list = [subject, surgery, session, behavior, scan]  # Note that order matters when activating
 
 
 def activate(schema, schema_name, create_schema=True, create_tables=True, linking_module=None):
