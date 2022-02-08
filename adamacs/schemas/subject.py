@@ -2,31 +2,11 @@ import datajoint as dj
 import importlib
 import inspect
 
-schema = dj.schema()
-_linking_module = None
-
-# ------------------ Activation ------------------
+from .. import db_prefix
 
 
-def activate(schema_name, create_schema=True, create_tables=True,
-             linking_module=None):
-    """
-    activate(schema_name, create_schema=True, create_tables=True, linking_module=None)
-        :param schema_name: schema name on the database server
-        :param create_schema: when True, create schema if it does not yet exist
-        :param create_tables: when True, create tables if they do not yet exist
-    """
-    if isinstance(linking_module, str):
-        linking_module = importlib.import_module(linking_module)
-    assert inspect.ismodule(linking_module), "The argument 'dependency' must "\
-                                             + "be a module's name or a module"
+schema = dj.schema(db_prefix + 'subject')
 
-    global _linking_module
-    _linking_module = linking_module
-
-    schema.activate(schema_name, create_schema=create_schema,
-                    create_tables=create_tables,
-                    add_objects=linking_module.__dict__)
 
 # -------------- Table declarations --------------
 
