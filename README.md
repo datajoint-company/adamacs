@@ -5,12 +5,12 @@ of the [SFB1089](https://sfb1089.de/). It is based on
 [datajoint](https://www.datajoint.org/).
 
 The schemas present are organized as follows:
-[!adamacs_schemas](./images/adamacs_schemas.svg)
+![adamacs_schemas](./images/adamacs_schemas.svg)
 
 The above are linked to
 [SFB's fork](https://github.com/SFB1089/element-calcium-imaging.git) of DataJoint's
 calcium imaging Element:
-[!adamacs_calcium_imaging](./images/adamacs_calcium_imaging.svg)
+![adamacs_calcium_imaging](./images/adamacs_calcium_imaging.svg)
 
 # Installation
 1. Install Anaconda and go to a command prompt.

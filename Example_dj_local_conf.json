@@ -25,6 +25,8 @@
         "imaging_root_data_dir" : [
             "/My/Local/Dir3",
             "/My/Local/Dir4",
-        ]
+        ],
+        "pyrat_user_token": "token",
+        "pyrat_client_token": "token"
     }
 }
