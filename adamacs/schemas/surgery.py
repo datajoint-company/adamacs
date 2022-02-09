@@ -11,13 +11,14 @@ with other procedures."""
 
 # from adamacs.utility import rspace_connect
 import datajoint as dj
-import importlib
-import inspect
-
 from . import subject
 from .. import db_prefix
 
 schema = dj.schema(db_prefix + 'surgery')
+
+__all__ = ['Anesthesia', 'Analgesia', 'Antagonist', 'Surgery', 'SurgeryNote', 'Virus',
+           'AnalgesiaSubject', 'Coordinates', 'ViralInjection', 'CranialWindow',
+           'AnatomicalLocation', 'subject']
 
 
 # -------------- Table declarations --------------

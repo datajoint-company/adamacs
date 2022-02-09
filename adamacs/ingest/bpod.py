@@ -8,6 +8,7 @@ from adamacs.paths import get_bpod_root_data_dir, get_session_dir
 
 schema = dj.schema(db_prefix + 'bpod_ingest')
 
+
 @schema
 class BehaviorIngest(dj.Imported):
     definition = """

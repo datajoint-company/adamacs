@@ -1,5 +1,4 @@
 import datajoint as dj
-import pathlib
 
 default_prefix = 'adamacs_'
 

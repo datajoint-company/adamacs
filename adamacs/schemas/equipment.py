@@ -3,7 +3,6 @@
 We use a variety of different equipment 
 """
 import datajoint as dj
-
 from .. import db_prefix
 
 schema = dj.schema(db_prefix + 'equipment')

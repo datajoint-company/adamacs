@@ -1,9 +1,5 @@
 import datajoint as dj
-import importlib
-import inspect
-
 from .. import db_prefix
-
 
 schema = dj.schema(db_prefix + 'subject')
 

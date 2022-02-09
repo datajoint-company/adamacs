@@ -7,12 +7,12 @@ and might change over time.
 """
 
 import datajoint as dj
-import importlib
-import inspect
+from . import subject
 from .. import db_prefix
 
 schema = dj.schema(db_prefix + 'session')
 
+__all__ = ['subject', 'Session', 'SessionDirectory', 'ProjectSession']
 
 # -------------- Table declarations --------------
 

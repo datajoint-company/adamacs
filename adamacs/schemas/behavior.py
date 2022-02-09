@@ -6,14 +6,13 @@ raw data and relates them to the Recording.
 """
 
 import datajoint as dj
-import importlib
-import inspect
-
 from . import session
 from .. import db_prefix
 
 schema = dj.schema(db_prefix + 'behavior')
 
+__all__ = ['session', 'RecordingBpod', 'TrialType', 'Trial', 'EventType', 'Event',
+           'TrialEvent', 'BehaviorTrial']
 
 # -------------- Table declarations --------------
 
