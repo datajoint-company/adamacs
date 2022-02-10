@@ -1,4 +1,5 @@
 from setuptools import setup
+from os import path
 
 
 with open('README.md') as f:
@@ -6,6 +7,10 @@ with open('README.md') as f:
 
 with open('LICENSE') as f:
     license = f.read()
+
+here = path.abspath(path.dirname(__file__))
+with open(path.join(here, 'requirements.txt')) as f:
+    requirements = f.read().splitlines()
 
 setup(
     name='adamacs',
@@ -17,11 +22,4 @@ setup(
     url='https://github.com/SFB1089/adamacs.git',
     license=license,
     packages=['adamacs'],
-    install_requires=[
-          'numpy',
-          'pandas',
-          'matplotlib',
-          'scipy',
-          'rspace_client',
-          'element-calcium-imaging @ git+https://github.com/SFB1089/element-calcium-imaging.git@main'
-      ])
+    install_requires=requirements)
