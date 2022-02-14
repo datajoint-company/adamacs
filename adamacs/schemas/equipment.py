@@ -2,22 +2,27 @@
 
 We use a variety of different equipment 
 """
-
 import datajoint as dj
+from .. import db_prefix
 
-schema = dj.schema()
+schema = dj.schema(db_prefix + 'equipment')
+
+
+# -------------- Table declarations --------------
+
 
 @schema
-class EquiptmentID(dj.Manual):
+class Equipment(dj.Manual):
     definition = """
     equipment_id             : int unsigned
     ---
     """
 
+
 @schema
 class Camera(dj.Manual):
     definition = """
-    -> EquipmentID
+    -> Equipment
     ---
     camera_type             : varchar(256)
     model=''                : varchar(256)
@@ -28,8 +33,7 @@ class Camera(dj.Manual):
 @schema
 class RetireEquipment(dj.Manual):
     definition = """
-    -> EquipmentID
+    -> Equipment
     ---
     retire_date            : date
     """
-

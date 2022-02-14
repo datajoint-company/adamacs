@@ -8,12 +8,21 @@ Anesthesia is required for a surgery. Analgesia must be given at
 least once before the surgery but could be given multiple times
 and might also be given after a surgery or might be associated
 with other procedures."""
+
+# from adamacs.utility import rspace_connect
 import datajoint as dj
+from . import subject
+from .. import db_prefix
 
-schema = dj.schema()
+schema = dj.schema(db_prefix + 'surgery')
 
-from adamacs import subject
-# from adamacs import rspace
+__all__ = ['Anesthesia', 'Analgesia', 'Antagonist', 'Surgery', 'SurgeryNote', 'Virus',
+           'AnalgesiaSubject', 'Coordinates', 'ViralInjection', 'CranialWindow',
+           'AnatomicalLocation', 'subject']
+
+
+# -------------- Table declarations --------------
+
 
 @schema
 class Anesthesia(dj.Manual):
@@ -58,12 +67,15 @@ class Surgery(dj.Manual):
     antagonist_time   : time
     antagonist_volume : float
     """
-    def make(self, key): #placeholder for RSpace query -> datajoint table
-        rspace_doc = client.get_documents(query='Filename_{}'.format(key))
-        surgery_data = rspace_doc['contents'] 
+    ''' Previous code for RSpace:
+    def make(self, key):  #placeholder for RSpace query -> datajoint table
+        rspace_doc = rspace_connect().get_documents(query='Filename_{}'.format(key))
+        surgery_data = rspace_doc['contents']
         self.insert1()
         # Which other tables below will be populated from RSpace?
         # If any, consider making dj.Part tables to share the same RSpace query
+    '''
+
 
 @schema
 class SurgeryNote(dj.Manual):
@@ -73,6 +85,7 @@ class SurgeryNote(dj.Manual):
     note    : varchar(30000)
     """
 
+
 @schema
 class Virus(dj.Manual):
     definition = """
@@ -80,8 +93,8 @@ class Virus(dj.Manual):
     serotype    : varchar(64)
     ---
     long_name   : varchar(300)
-
     """
+
 
 @schema
 class AnalgesiaSubject(dj.Manual):
@@ -91,6 +104,7 @@ class AnalgesiaSubject(dj.Manual):
     datetime   : datetime
     ---
     """
+
 
 @schema
 class Coordinates(dj.Manual):
@@ -122,4 +136,11 @@ class CranialWindow(dj.Manual):
     -> Surgery
     ---
     time   : time
+    """
+
+
+@schema
+class AnatomicalLocation(dj.Manual):
+    definition = """
+    anatomical_location    : varchar(16)
     """

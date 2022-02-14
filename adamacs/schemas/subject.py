@@ -1,6 +1,11 @@
 import datajoint as dj
+from .. import db_prefix
 
-schema = dj.schema()
+schema = dj.schema(db_prefix + 'subject')
+
+
+# -------------- Table declarations --------------
+
 
 @schema
 class Lab(dj.Manual):
@@ -75,7 +80,7 @@ class Subject(dj.Manual):
     subject                 : varchar(16)
     ---
     -> Lab
-    earmark=''               : varchar(16)  # aka lab_id
+    earmark=''              : varchar(16)  # aka lab_id
     sex                     : enum('M', 'F', 'U')
     birth_date              : date
     subject_description=''  : varchar(1024)
@@ -104,4 +109,3 @@ class SubjectDeath(dj.Manual):
     death_date      : date       # death date
     cause           :    varchar(255)
     """
-
