@@ -1,0 +1,10 @@
+datajoint==0.13.2
+scipy
+numpy
+pandas
+ipysheet
+requests
+matplotlib
+rspace-client==1.6.0
+element-interface @ git+https://github.com/datajoint/element-interface.git@main
+element-calcium-imaging @ git+https://github.com/SFB1089/element-calcium-imaging.git@main

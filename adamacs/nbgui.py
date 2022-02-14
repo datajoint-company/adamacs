@@ -1,7 +1,8 @@
-import ipywidgets
 from adamacs import subject
 from IPython.display import clear_output, display
 import ipysheet
+from ipywidgets import widgets
+
 
 class MouseEntry(object):
     """DEPRECATED. REMOVE SOON."""
@@ -10,32 +11,32 @@ class MouseEntry(object):
         self.columns = self.sub.fetch().dtype.names
         self.widgets = {}
         for col in self.columns:
-            curr_widget = ipywidgets.widgets.Text(
-            value='',
-            placeholder='',
-            description=col,
-            disabled=False)
+            curr_widget = widgets.Text(
+                value='',
+                placeholder='',
+                description=col,
+                disabled=False)
             self.widgets[col] = curr_widget
 
-        self.upload_button = ipywidgets.widgets.Button(
+        self.upload_button = widgets.Button(
             description='Upload Data',
             disabled=False,
-            button_style='', # 'success', 'info', 'warning', 'danger' or ''
+            button_style='',  # 'success', 'info', 'warning', 'danger' or ''
             tooltip='Click to upload data',
-            icon='database' # (FontAwesome names without the `fa-` prefix)
+            icon='database'   # (FontAwesome names without the `fa-` prefix)
         )
 
-        self.query_button = ipywidgets.widgets.Button(
+        self.query_button = widgets.Button(
             description='Query',
             disabled=False,
-            button_style='', # 'success', 'info', 'warning', 'danger' or ''
+            button_style='',  # 'success', 'info', 'warning', 'danger' or ''
             tooltip='Click to upload data',
-            icon='table' # (FontAwesome names without the `fa-` prefix)
+            icon='table'  # (FontAwesome names without the `fa-` prefix)
         )
 
         self.upload_button.on_click(self.button_on_click)
 
-        self.app = ipywidgets.widgets.VBox((*self.widgets.values(), self.upload_button))
+        self.app = widgets.VBox((*self.widgets.values(), self.upload_button))
     
     def upload_button_on_click(self, b):
         data = [self.widgets[x].value for x in self.widgets]
@@ -43,32 +44,34 @@ class MouseEntry(object):
         clear_output(wait=True)
         display(self.app)
 
+
 class MouseEntrySheet(object):
     def __init__(self):
         self.sub = subject.Subject()
         self.columns = self.sub.fetch().dtype.names
         self.widgets = {}
 
-        self.sheet = ipysheet.sheet(key='main', rows=10, columns=len(self.columns), column_headers=self.columns, row_headers=False)
+        self.sheet = ipysheet.sheet(key='main', rows=10, columns=len(self.columns),
+                                    column_headers=self.columns, row_headers=False)
         # self.ipysheet = ipysheet  # Check if that makes sense
         self.rows = []
         for x in range(self.sheet.rows):
             self.rows.append(ipysheet.row(x, ['']*self.sheet.columns))
         
-        self.upload_button = ipywidgets.widgets.Button(
+        self.upload_button = widgets.Button(
             description='Upload Data',
             disabled=False,
-            button_style='', # 'success', 'info', 'warning', 'danger' or ''
+            button_style='',  # 'success', 'info', 'warning', 'danger' or ''
             tooltip='Click to upload data',
-            icon='database' # (FontAwesome names without the `fa-` prefix)
+            icon='database'  # (FontAwesome names without the `fa-` prefix)
         )
         
-        self.query_button = ipywidgets.widgets.Button(
+        self.query_button = widgets.Button(
             description='Query',
             disabled=False,
-            button_style='', # 'success', 'info', 'warning', 'danger' or ''
+            button_style='',  # 'success', 'info', 'warning', 'danger' or ''
             tooltip='Click to query data',
-            icon='table' # (FontAwesome names without the `fa-` prefix)
+            icon='table'  # (FontAwesome names without the `fa-` prefix)
         )
 
         self.query_able = {'Lab': subject.Lab,
@@ -77,7 +80,7 @@ class MouseEntrySheet(object):
                            'Project': subject.Project,
                            'Protocol': subject.Protocol}
 
-        self.query_dropdown = ipywidgets.widgets.Dropdown(
+        self.query_dropdown = widgets.Dropdown(
             options=list(self.query_able.keys()),
             value=list(self.query_able.keys())[0],
             description='Query Table:',
@@ -86,8 +89,9 @@ class MouseEntrySheet(object):
 
         self.upload_button.on_click(self.upload_button_on_click)
         self.query_button.on_click(self.query_button_on_click)
-        self.buttons = ipywidgets.widgets.HBox((self.upload_button, self.query_button, self.query_dropdown))
-        self.app = ipywidgets.widgets.VBox((self.sheet, self.buttons))
+        self.buttons = widgets.HBox((self.upload_button, self.query_button,
+                                     self.query_dropdown))
+        self.app = widgets.VBox((self.sheet, self.buttons))
     
     def upload_button_on_click(self, b):
         for row in self.sheet.cells:

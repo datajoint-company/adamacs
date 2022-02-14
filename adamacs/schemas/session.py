@@ -7,9 +7,15 @@ and might change over time.
 """
 
 import datajoint as dj
-from adamacs import subject
+from . import subject
+from .. import db_prefix
 
-schema = dj.schema()
+schema = dj.schema(db_prefix + 'session')
+
+__all__ = ['subject', 'Session', 'SessionDirectory', 'ProjectSession']
+
+# -------------- Table declarations --------------
+
 
 @schema
 class Session(dj.Manual):
@@ -24,7 +30,7 @@ class SessionDirectory(dj.Manual):
     definition = """
     -> Session
     ---
-    session_dir: varchar(256)       # Path to the data directory for a particular session
+    session_dir: varchar(256) # Path to the data directory for a particular session
     """
 
 
