@@ -34,7 +34,7 @@ class Line(dj.Manual):
     # animal line 
     line                        : varchar(32)
     ---
-    line_description=''         : varchar(255)
+    line_name=''                : varchar(3000)
     target_genotype=''          : varchar(255)
     is_active                   : boolean
     """
@@ -56,6 +56,7 @@ class User(dj.Lookup):
     definition = """
     user                : varchar(32)
     ---
+    full_name           :
     -> Lab
     """
 
@@ -77,15 +78,19 @@ class Subject(dj.Manual):
     # because different labs use different animal facilities.
     # CB: I see cage as an item in PyRAT export - relevant in analysis?
 
-    subject                 : varchar(16)
+    subject                 : varchar(16)  # ID
     ---
     -> Lab
     earmark=''              : varchar(16)  # aka lab_id
-    sex                     : enum('M', 'F', 'U')
-    birth_date              : date
+    sex                     : enum('M', 'F', 'U')  # Geschlecht
+    birth_date              : date  # Geb.
     subject_description=''  : varchar(1024)
-    -> Line
-    -> User
+    generation              : varchar(255)  # Generation (F2 in example sheet)
+    litter                  : varchar(8)  # The single letter identifying the litter of the generation
+    owner                   : varchar(255)  # Besitzer
+    responsible             : varchar(255)  # Verantwortlicher
+    -> Line                 # Linie / Stamm
+    -> User                 # 
     -> Project
     -> Protocol
     """
