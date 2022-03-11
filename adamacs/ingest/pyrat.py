@@ -27,6 +27,9 @@ Issues with pyrat test database:
     2. A number of test subjects are missing crucial data like birthdate. For now,
        these variables have been set as nullable, but should be enforced when we have
        access to the real server.
+Issues with current code:
+    1. mutations_list needs additional logic to prevent adding duplicates for unqiue
+       pairs of line/mutation_id
 
 Example payload= (note( HSC prefix has mutation data))
     [{'eartag_or_id': 'ROE-0221', 'labid': None, 'sex': 'f', 'generation': None,
@@ -92,49 +95,42 @@ class PyratIngestion:
         owner_id = None
         max_db_user_id = int((dj.U().aggr(subject.User, n='max(user_id)'
                                           ).fetch('n') or 0) + 1)
-        for owner in restrict_by(payload, 'owner_fullname', user_list, 'user_id'):
-            owner_query = subject.User & {'name': owner['owner_fullname']}
-            if owner_query:
-                owner_id = (owner_query).fetch1('user_id')
-            else:
-                max_list_val = max([val["user_id"] for val in user_list]) + 1
-                owner_id = max(max_db_user_id, max_list_val)
+        for owner in restrict_by(payload, 'owner_fullname', subject.User, 'name'):
+            max_list_val = max([val["user_id"] for val in user_list]) + 1
+            owner_id = max(max_db_user_id, max_list_val)
             user_list.append({'user_id': owner_id, 'name': owner['owner_fullname']})
         responsible_id = None
-        for resp in restrict_by(payload, 'responsible_fullname'):
-            responsible_query = subject.User & {'name': resp['responsible_fullname']}
-            if responsible_query:
-                responsible_id = responsible_query.fetch1('user_id')
-            else:
-                max_list_val = max([val["user_id"] for val in user_list]) + 1
-                responsible_id = max(max_db_user_id, max_list_val)
-                user_list.append({'user_id': responsible_id,
-                                  'name': resp['responsible_fullname']})
-        user_list = [d for d in user_list if d['user_id'] != 0]
+        for resp in restrict_by(payload, 'responsible_fullname', subject.User, 'name'):
+            max_list_val = max([val["user_id"] for val in user_list]) + 1
+            responsible_id = max(max_db_user_id, max_list_val)
+            user_list.append({'user_id': responsible_id,
+                              'name': resp['responsible_fullname']})
+        user_list = [d for d in user_list if d['user_id'] != 0]  # removing default
 
         print('Gathering protocols...')
         protocol_list = []
-        for protocol in restrict_by(payload, 'licence_number'):
-            # protocol_list, 'protocol'):
-            if not subject.Protocol & {'protocol': protocol['licence_number']}:
-                protocol_list.append({'protocol': protocol['licence_number'],
-                                      'protocol_description': protocol['licence_title']
-                                      })
+        for protocol in restrict_by(payload, 'licence_number',
+                                    subject.Protocol, 'protocol'):
+            protocol_list.append({'protocol': protocol['licence_number'],
+                                  'protocol_description': protocol['licence_title']})
+
         print('Gathering lines/mutations...')
         line_list = []
-        for line in restrict_by(payload, 'strain_id'):
-        #  ERROR - this is overly restrictive, not caputring all items that are in genotype_list
-            if not subject.Line & {'line': line['strain_id']}:
-                is_active = self.strain_status(line['strain_id'])
-                line_list.append({'line': line['strain_id'],
-                                  'line_name': line['strain_name'],
-                                  'is_active': is_active})
-        mutation_list = []
+        for line in restrict_by(payload, 'strain_id', subject.Line, 'line'):
+            is_active = self.strain_status(line['strain_id'])
+            line_list.append({'line': line['strain_id'],
+                              'line_name': line['strain_name'],
+                              'is_active': is_active})
+        mutation_list = []  # can't use restrict_by here b/c embedded list not hashable
         for animal in [d for d in payload if d['mutations']]:
             for mutation in animal['mutations']:  # one of multiple mutations
-                if (not subject.Mutation & {'mutation_id': mutation['mutation_id']}
-                    and mutation['mutation_id'] not in [val['mutation_id']
-                                                        for val in mutation_list]):
+                if (
+                    not subject.Mutation & {'line': animal['strain_id'],
+                                            'mutation_id': mutation['mutation_id']}
+                    #  Can't figure out the dual list comprehension here
+                    # and mutation['mutation_id'] not in [val['mutation_id']
+                    #                                     for val in mutation_list]
+                ):
                     mutation_list.append({'line': animal['strain_id'],
                                           'mutation_id': mutation['mutation_id'],
                                           'description': mutation['mutationname']})
@@ -142,30 +138,29 @@ class PyratIngestion:
         print('Gathering subjects...')
         subject_list = []
         genotype_list = []
-        for animal in restrict_by(payload, 'eartag_or_id'):  # subject_list,'subject'):
-            if not (subject.Subject & {'subject': animal['eartag_or_id']}):
-                parents = animal['parents']
-                if parents:
-                    parent_ids = {parents[0]['parent_sex']: parents[0]['parent_eartag'],
-                                  parents[1]['parent_sex']: parents[1]['parent_eartag']}
-                else:
-                    parent_ids = None
-                subject_list.append({'subject': animal['eartag_or_id'],
-                                     'earmark': animal['labid'],
-                                     'sex': animal['sex'],
-                                     'birth_date': animal['dateborn'] or None,
-                                     # 'subject_description': ??, # pyrat animal_color?
-                                     'generation': animal['generation'] or None,
-                                     'parent_ids': parent_ids or None,
-                                     'owner_id': owner_id,
-                                     'responsible_id': responsible_id,
-                                     'line': animal['strain_id'],
-                                     'protocol': animal['licence_number'] or None})
-                for mutation in animal['mutations']:
-                    genotype_list.append({'subject': animal['eartag_or_id'],
-                                          'line': animal['strain_id'],
-                                          'mutation_id': mutation['mutation_id'],
-                                          'genotype': mutation['mutationgrade']})
+        for animal in restrict_by(payload, 'eartag_or_id', subject.Subject, 'subject'):
+            parents = animal['parents']
+            if parents:
+                parent_ids = {parents[0]['parent_sex']: parents[0]['parent_eartag'],
+                              parents[1]['parent_sex']: parents[1]['parent_eartag']}
+            else:
+                parent_ids = None
+            subject_list.append({'subject': animal['eartag_or_id'],
+                                 'earmark': animal['labid'],
+                                 'sex': animal['sex'],
+                                 'birth_date': animal['dateborn'] or None,
+                                 # 'subject_description': ??, # pyrat animal_color?
+                                 'generation': animal['generation'] or None,
+                                 'parent_ids': parent_ids or None,
+                                 'owner_id': owner_id,
+                                 'responsible_id': responsible_id,
+                                 'line': animal['strain_id'],
+                                 'protocol': animal['licence_number'] or None})
+            for mutation in animal['mutations']:
+                genotype_list.append({'subject': animal['eartag_or_id'],
+                                      'line': animal['strain_id'],
+                                      'mutation_id': mutation['mutation_id'],
+                                      'genotype': mutation['mutationgrade']})
 
         # --- User Confirmation ---
         print('--- PyRAT items to be inserted ---')
@@ -184,9 +179,11 @@ class PyratIngestion:
         subject.User.insert(user_list)
         subject.Protocol.insert(protocol_list)
         subject.Line.insert(line_list)
-        subject.Mutation.insert(mutation_list)
+        # need additional logic above to prevent adding duplicates to list
+        subject.Mutation.insert(mutation_list, skip_duplicates=True)
         subject.Subject.insert(subject_list)
-        # subject.SubjectGenotype.insert(genotype_list) # foreign key contstraint fail bc line_list is missing items
+        # foreign key contstraint fail bc line_list is missing items
+        subject.SubjectGenotype.insert(genotype_list)
 
     def strain_status(self, strain_id: str):
         """For a given a given strain_id, return 'active'
@@ -201,14 +198,14 @@ class PyratIngestion:
         return payload[0]['active']
 
 
-def restrict_by(payload, pkey, built_list=None, lkey=None):
+def restrict_by(payload, pkey, dest_table=None, tkey=None):
     """
-    First, restrict the list of dicts payload by unique instances of a payload key
-    Second, remove items where the payload key is already in the list we're building
+    1. Restrict the list of dicts payload by unique instances of a payload key
+    2. Remove items where payload key is already in the tkey value of the dest_table
     """
     unique_payload = list({v[pkey]: v for v in payload if v[pkey] is not None}.values())
-    if built_list:
-        existing_ids = [str(val[lkey]) for val in built_list]
-        return [d for d in unique_payload if str(d[pkey]) not in existing_ids]
+    if dest_table:
+        existing_ids = dest_table.fetch(tkey).tolist()
+        return [d for d in unique_payload if d[pkey] not in existing_ids]
     else:
         return unique_payload

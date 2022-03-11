@@ -42,7 +42,7 @@ class Protocol(dj.Manual):
 class Line(dj.Manual):
     definition = """
     # animal line 
-    line                        : varchar(32)
+    line                        : int
     ---
     line_name=''                : varchar(64)
     is_active                   : int
