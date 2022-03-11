@@ -9,7 +9,7 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 
-path = r'E:\Dropbox\Dropbox\013_INF\INF_Raw_Data\T - DB_WEZ-8705_2022-02-15_exp9FAK32BA\exp9FAK32BA_TR_ROS-0005_0043.h5'
+path = r'C:\repos\adamacs\data\T - DB_WEZ-8705_2022-02-15_exp9FAK32BA\exp9FAK32BA_TR_ROS-0005_0043.h5'
 
 hf = h5py.File(path, 'r')
 
@@ -62,11 +62,21 @@ ax[8].set_ylabel("BPOD reward /\npunish")
 ax[8].set_xlabel("time (s)")
 
 """Calculate timestamps"""
-def get_timestamps(auxdata, thr=1, inverse=False):
-    if auxdata.dtype == 'bool':
-        auxdata = auxdata > thr
-        
-    digithr = 0.5
-    diff = np.diff(auxdata)
+def get_timestamps(data, sr, thr=1, inverse=False ):
+    if data.dtype == 'bool':
+        data = data > 0.5
+    else:
+        data = data > thr
+    if inverse: data = not data
+    
+    diff = np.diff(data)
     idc = np.argwhere(diff != 0)
+    timestamps = idc / sr
+    return timestamps
+
+ts_main_track_gate_chan = get_timestamps(main_track_gate_chan, sr)
+ts_shutter_chan = get_timestamps(shutter_chan, sr)
+ts_mini2p_frame_chan = get_timestamps(mini2p_frame_chan, sr)
+ts_mini2p_line_chan = get_timestamps(mini2p_line_chan, sr)
+ts_mini2p_vol_chan = get_timestamps(mini2p_vol_chan, sr)
 
