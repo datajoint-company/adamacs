@@ -12,7 +12,7 @@ from .. import db_prefix
 
 schema = dj.schema(db_prefix + 'session')
 
-__all__ = ['subject', 'Session', 'SessionDirectory', 'ProjectSession']
+__all__ = ['subject', 'Session', 'ProjectSession']
 
 # -------------- Table declarations --------------
 
@@ -24,14 +24,11 @@ class Session(dj.Manual):
     session_datetime: datetime(3)
     """
 
-
-@schema
-class SessionDirectory(dj.Manual):
-    definition = """
-    -> Session
-    ---
-    session_dir: varchar(256) # Path to the data directory for a particular session
-    """
+    class SessionDirectory(dj.Part):
+        definition = """
+        -> master
+        session_dir: varchar(256) # Path to the data directory for a particular session
+        """
 
 
 @schema
