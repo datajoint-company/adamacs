@@ -62,11 +62,22 @@ ax[8].set_ylabel("BPOD reward /\npunish")
 ax[8].set_xlabel("time (s)")
 
 """Calculate timestamps"""
-def get_timestamps(auxdata, thr=1, inverse=False):
-    if auxdata.dtype == 'bool':
-        auxdata = auxdata > thr
-        
-    digithr = 0.5
-    diff = np.diff(auxdata)
+def get_timestamps(data, sr, thr=1, inverse=False ):
+    if data.dtype == 'bool':
+        data = data > 0.5
+    else:
+        data = data > thr
+    if inverse: data = not data
+    
+    diff = np.diff(data)
     idc = np.argwhere(diff != 0)
+    timestamps = idc / sr
+    return timestamps
+
+ts_main_track_gate_chan = get_timestamps(main_track_gate_chan, sr)
+ts_shutter_chan = get_timestamps(shutter_chan, sr)
+ts_mini2p_frame_chan = get_timestamps(mini2p_frame_chan, sr)
+ts_mini2p_line_chan = get_timestamps(mini2p_line_chan, sr)
+ts_mini2p_vol_chan = get_timestamps(mini2p_vol_chan, sr)
+
 
