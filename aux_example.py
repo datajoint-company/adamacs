@@ -8,10 +8,11 @@ Created on Mon Mar  7 12:05:43 2022
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
+from pywavesurfer import ws
 
 path = r'E:\Dropbox\Dropbox\013_INF\INF_Raw_Data\T - DB_WEZ-8705_2022-02-15_exp9FAK32BA\exp9FAK32BA_TR_ROS-0005_0043.h5'
 
-hf = h5py.File(path, 'r')
+hf = ws.loadDataFile(filename=path, format_string='double' )
 
 def demultiplex(auxdata, channels=5):
     """Demultiplex the digital data"""
