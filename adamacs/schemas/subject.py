@@ -54,7 +54,7 @@ class Mutation(dj.Manual):
     definition = """
     # The mutations of animal lines
     -> Line
-    mutation_id                 : varchar(32)
+    mutation_id                 : int
     ---
     description=''              : varchar(32)
     """
