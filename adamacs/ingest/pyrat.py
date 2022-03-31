@@ -48,7 +48,7 @@ import datajoint as dj
 import json
 import requests
 from requests.auth import HTTPBasicAuth
-from ..pipeline import subject
+from ..schemas import subject
 
 # Constants
 url = 'https://pyrat.uniklinik-bonn.de/pyrat-test/api/v2/'
@@ -124,16 +124,18 @@ class PyratIngestion:
         mutation_list = []  # can't use restrict_by here b/c embedded list not hashable
         for animal in [d for d in payload if d['mutations']]:
             for mutation in animal['mutations']:  # one of multiple mutations
-                if (
-                    not subject.Mutation & {'line': animal['strain_id'],
-                                            'mutation_id': mutation['mutation_id']}
-                    #  Can't figure out the dual list comprehension here
-                    # and mutation['mutation_id'] not in [val['mutation_id']
-                    #                                     for val in mutation_list]
-                ):
-                    mutation_list.append({'line': animal['strain_id'],
-                                          'mutation_id': mutation['mutation_id'],
-                                          'description': mutation['mutationname']})
+                if (not subject.Mutation & {'line': animal['strain_id'],
+                                            'mutation_id': mutation['mutation_id']}):
+                    # Unique ID for mutation/line combo for test not already in list
+                    mutation['mut_line'] = (str(animal['strain_id']) + '_'
+                                            + str(mutation['mutation_id']))
+                    if mutation['mut_line'] not in [val['mut_line']
+                                                    for val in mutation_list]:
+                        mutation_list.append({'mut_line': mutation['mut_line'],
+                                              'line': animal['strain_id'],
+                                              'mutation_id': mutation['mutation_id'],
+                                              'description': mutation['mutationname']})
+        _ = [d.pop('mut_line') for d in mutation_list]  # drop unique ID
 
         print('Gathering subjects...')
         subject_list = []
@@ -180,7 +182,7 @@ class PyratIngestion:
         subject.Protocol.insert(protocol_list)
         subject.Line.insert(line_list)
         # need additional logic above to prevent adding duplicates to list
-        subject.Mutation.insert(mutation_list, skip_duplicates=True)
+        subject.Mutation.insert(mutation_list)  # , skip_duplicates=True)
         subject.Subject.insert(subject_list)
         # foreign key contstraint fail bc line_list is missing items
         subject.SubjectGenotype.insert(genotype_list)

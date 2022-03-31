@@ -27,7 +27,7 @@ __all__ = ['Anesthesia', 'Analgesia', 'Antagonist', 'Surgery', 'SurgeryNote', 'V
 @schema
 class Anesthesia(dj.Manual):
     definition = """
-    anesthesia        : varchar(16)
+    anesthesia  : varchar(16)
     ---
     long_name   : varchar(300)
     """
@@ -36,7 +36,7 @@ class Anesthesia(dj.Manual):
 @schema
 class Analgesia(dj.Manual):
     definition = """
-    analgesia        : varchar(16) 
+    analgesia   : varchar(16)
     ---
     long_name   : varchar(300)
     """
@@ -46,7 +46,7 @@ class Analgesia(dj.Manual):
 class Antagonist(dj.Manual):
     definition = """
     # The compound used to counter the anesthetic after surgery
-    antagonist        : varchar(16)
+    antagonist  : varchar(16)
     ---
     long_name   : varchar(300)
     """
@@ -82,8 +82,10 @@ class SurgeryNote(dj.Manual):
     definition = """
     -> Surgery
     ---
-    note    : varchar(30000)
+    note    : varchar(2048)
     """
+    # DEV NOTE: 16383 is the max for varchar. BLOB or TEXT can handle more.
+    #           How much is needed?
 
 
 @schema

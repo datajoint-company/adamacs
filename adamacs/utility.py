@@ -1,12 +1,9 @@
+import rspace as rc
 import importlib
 import inspect
-
-import datajoint as dj
-import scipy.io as sio
+import json
+import os
 from . import subject, surgery, session, behavior, scan
-
-module_list = [subject, surgery, session, behavior, scan]  # Note that order matters when activating
-
 
 _linking_module = None
 

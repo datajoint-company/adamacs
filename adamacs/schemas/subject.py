@@ -10,7 +10,7 @@ schema = dj.schema(db_prefix + 'subject')
 @schema
 class Lab(dj.Manual):
     definition = """
-    lab             : varchar(8)   # short lab name, pyrad labid
+    lab             : varchar(8)   # short lab name, pyrat labid
     ---
     lab_name        : varchar(255)
     institution     : varchar(255)
