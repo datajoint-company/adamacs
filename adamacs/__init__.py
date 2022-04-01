@@ -1,6 +1,6 @@
 import datajoint as dj
 
-default_prefix = 'cbroz_bonn_'
+default_prefix = 'adamacs_'
 
 if 'custom' not in dj.config:
     dj.config['custom'] = {}
