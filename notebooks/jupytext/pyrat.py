@@ -40,8 +40,8 @@ print('SubjectGenotype', len(subject.SubjectGenotype()))
 
 from adamacs.ingest.pyrat import PyratIngestion
 
-# PyratIngestion().get_animal("HSC-01*")
-PyratIngestion().get_animal("HSC-01*")
+# PyratIngestion().ingest_animal("HSC-01*")
+PyratIngestion().ingest_animal("HSC-01*")
 
 print('User', len(subject.User()))
 print('Protocol', len(subject.Protocol()))
@@ -50,7 +50,7 @@ print('Mutation', len(subject.Mutation()))
 print('Subject', len(subject.Subject()))
 print('SubjectGenotype', len(subject.SubjectGenotype()))
 
-PyratIngestion().get_animal("HSC-02*")
+PyratIngestion().ingest_animal("HSC-02*")
 
 print('User', len(subject.User()))
 print('Protocol', len(subject.Protocol()))
