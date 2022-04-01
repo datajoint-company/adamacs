@@ -72,7 +72,7 @@ class PyratIngestion:
         else:
             print(f'Connection error {test_connection.status_code}')
 
-    def get_animal(self, SubjectID: str, prompt=True):
+    def ingest_animal(self, SubjectID: str, prompt=True):
         """Import subject info from pyrat into adamacs subject schema
         :param SubjectID: accepts wildcards (e.g., KOF* for IDs beginning w/KOF)
         example use: PyratIngestion().get_animal('KOF*')
@@ -177,15 +177,16 @@ class PyratIngestion:
             print('Canceled insert.')
             return
 
-        # --- Inserts ---
-        subject.User.insert(user_list)
-        subject.Protocol.insert(protocol_list)
-        subject.Line.insert(line_list)
-        # need additional logic above to prevent adding duplicates to list
-        subject.Mutation.insert(mutation_list)  # , skip_duplicates=True)
-        subject.Subject.insert(subject_list)
-        # foreign key contstraint fail bc line_list is missing items
-        subject.SubjectGenotype.insert(genotype_list)
+        with subject.Subject.connection.transaction:
+                # --- Inserts ---
+                subject.User.insert(user_list)
+                subject.Protocol.insert(protocol_list)
+                subject.Line.insert(line_list)
+                # need additional logic above to prevent adding duplicates to list
+                subject.Mutation.insert(mutation_list)  # , skip_duplicates=True)
+                subject.Subject.insert(subject_list)
+                # foreign key contstraint fail bc line_list is missing items
+                subject.SubjectGenotype.insert(genotype_list)
 
     def strain_status(self, strain_id: str):
         """For a given a given strain_id, return 'active'
