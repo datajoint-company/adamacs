@@ -10,7 +10,7 @@ import h5py
 import matplotlib.pyplot as plt
 from pywavesurfer import ws
 
-path = r'E:\Dropbox\Dropbox\013_INF\INF_Raw_Data\T - DB_WEZ-8705_2022-02-15_exp9FAK32BA\exp9FAK32BA_TR_ROS-0005_0043.h5'
+path = r'E:\Dropbox\Dropbox\013_INF\INF_Raw_Data\DB_WEZ-8701_2022-03-18_scan9FB2LN5C_sess9FB2LN5C\scan9FB2LN5C_DB_WEZ-8701_2027.h5'
 
 hf = ws.loadDataFile(filename=path, format_string='double' )
 
@@ -20,11 +20,13 @@ def demultiplex(auxdata, channels=5):
     binary = [[int(x) for x in f'{x:0{channels}b}'] for x in auxdata]
     return np.array(binary, dtype=bool).T
 
+sweep = [x for x in hf.keys() if 'sweep' in x][0]
+
 sr = hf['header']['AcquisitionSampleRate'][0][0]
-timebase = np.arange(hf['sweep_0043']['analogScans'].shape[1]) / sr
+timebase = np.arange(hf[sweep]['analogScans'].shape[1]) / sr
 
 # DIGITAL SIGNALS
-digital_channels = demultiplex(hf['sweep_0043']['digitalScans'][0], 5)
+digital_channels = demultiplex(hf[sweep]['digitalScans'][0], 5)
 main_track_gate_chan = digital_channels[4]
 shutter_chan = digital_channels[3]
 mini2p_frame_chan = digital_channels[2]
@@ -32,10 +34,10 @@ mini2p_line_chan = digital_channels[1]
 mini2p_vol_chan = digital_channels[0]
 
 # ANALOG SIGNALS
-cam_trigger = hf['sweep_0043']['analogScans'][0]
-bpod_trial_vis_chan = hf['sweep_0043']['analogScans'][1]
-bpod_reward1_chan = hf['sweep_0043']['analogScans'][2]
-bpod_tone_chan = hf['sweep_0043']['analogScans'][3]
+cam_trigger = hf[sweep]['analogScans'][0]
+bpod_trial_vis_chan = hf[sweep]['analogScans'][1]
+bpod_reward1_chan = hf[sweep]['analogScans'][2]
+bpod_tone_chan = hf[sweep]['analogScans'][3]
 
 fig, ax = plt.subplots(9)
 ax[0].plot(timebase, main_track_gate_chan)

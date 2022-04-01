@@ -1,7 +1,7 @@
 import datajoint as dj
 from .. import db_prefix
 
-schema = dj.schema(db_prefix + 'subject')
+schema = dj.schema()
 
 
 # -------------- Table declarations --------------
@@ -35,6 +35,7 @@ class Line(dj.Manual):
     line                        : varchar(32)
     ---
     line_name=''                : varchar(3000)
+    target_genotype=''          : varchar(255)
     is_active                   : boolean
     """
 
@@ -46,22 +47,8 @@ class Mutation(dj.Manual):
     -> Line
     mutation                    : varchar(32)
     ---
-    description=''              : varchar(26)
+    description=''              : varchar(2000)
     """
-
-    '''
-    'mutations': [{'animalid': 17988,
-        'mutation_id': 66,
-        'mutationname': 'cbl-b',
-        'grade_id': 44,
-        'mutationgrade': 'd/d'}]}
-​
-  'mutations': [{'animalid': 17984,
-        'mutation_id': 66,
-        'mutationname': 'cbl-b',
-        'grade_id': 3,
-        'mutationgrade': '+/+'}]}
-    '''
 
 
 @schema
@@ -69,7 +56,7 @@ class User(dj.Lookup):
     definition = """
     user                : varchar(32)
     ---
-    full_name           :
+    full_name           : varchar(300)
     -> Lab
     """
 
@@ -99,8 +86,6 @@ class Subject(dj.Manual):
     birth_date              : date  # Geb.
     subject_description=''  : varchar(1024)
     generation              : varchar(255)  # Generation (F2 in example sheet)
-    father                  : varchar(16)
-    mother                  : varchar(16)
     owner                   : varchar(255)  # Besitzer
     responsible             : varchar(255)  # Verantwortlicher
     -> Line                 # Linie / Stamm
@@ -116,7 +101,7 @@ class SubjectGenotype(dj.Manual):
     -> Subject
     -> Mutation
     ---
-    genotype        : varchar(8)
+    genotype        : enum('wt/wt', 'wt/tg', 'tg/wt', 'tg/tg')
     """
 
 
@@ -127,13 +112,4 @@ class SubjectDeath(dj.Manual):
     ---
     death_date      : date       # death date
     cause           :    varchar(255)
-    """
-
-@schema
-class SubjectUserRole(dj.Imported):
-    definition = """
-    -> Subject
-    -> User
-    ---
-    role : varchar(32) # e.g., responsible, owner,
     """

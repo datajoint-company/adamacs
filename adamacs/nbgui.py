@@ -1,4 +1,4 @@
-from adamacs import subject
+from adamacs.schemas import subject
 from IPython.display import clear_output, display
 import ipysheet
 from ipywidgets import widgets

@@ -14,7 +14,7 @@ import datajoint as dj
 from . import subject
 from .. import db_prefix
 
-schema = dj.schema(db_prefix + 'surgery')
+schema = dj.schema()
 
 __all__ = ['Anesthesia', 'Analgesia', 'Antagonist', 'Surgery', 'SurgeryNote', 'Virus',
            'AnalgesiaSubject', 'Coordinates', 'ViralInjection', 'CranialWindow',
