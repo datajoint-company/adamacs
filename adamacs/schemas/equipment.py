@@ -14,26 +14,5 @@ schema = dj.schema()
 @schema
 class Equipment(dj.Manual):
     definition = """
-    equipment_id             : int unsigned
-    ---
-    """
-
-
-@schema
-class Camera(dj.Manual):
-    definition = """
-    -> Equipment
-    ---
-    camera_type             : varchar(256)
-    model=''                : varchar(256)
-    description=''          : varchar(256)
-    """
-
-
-@schema
-class RetireEquipment(dj.Manual):
-    definition = """
-    -> Equipment
-    ---
-    retire_date            : date
+    scanner: varchar(32)
     """
