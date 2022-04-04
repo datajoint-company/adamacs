@@ -9,7 +9,7 @@ from datajoint.errors import DuplicateError
 import warnings
 
 
-def ingest_session(session_key, session_path=r'C:\datajoint', verbose=False):
+def ingest_session_scan(session_key, session_path=r'C:\datajoint', verbose=False):
     """Locate all directories in session_path that are part
     of the sesssion. Extract the following attributes from
     the directory names:
@@ -77,4 +77,5 @@ def ingest_session(session_key, session_path=r'C:\datajoint', verbose=False):
     except DuplicateError:
        warnings.warn(f'SessionUser {session_key, user} already inserted. Skipped!')
 
+    
     
