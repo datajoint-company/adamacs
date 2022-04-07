@@ -5,8 +5,11 @@ pandas
 ipysheet
 requests
 matplotlib
+ruamel
+csv
+rspace-client==1.6.0
 element-interface @ git+https://github.com/datajoint/element-interface.git@main
 element-calcium-imaging @ git+https://github.com/SFB1089/element-calcium-imaging.git@main
 element-session @ git+https://github.com/SFB1089/element-session.git@main
 scanreader @ git+https://github.com/atlab/scanreader.git
-pywavesurfer @ git+https://github.com/SFB1089/PyWaveSurfer.git
+pywavesurfer @ git+https://github.com/JaneliaSciComp/PyWaveSurfer.git
