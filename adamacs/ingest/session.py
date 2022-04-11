@@ -7,6 +7,7 @@ from element_session import session_with_id
 from itertools import groupby
 from datajoint.errors import DuplicateError
 import warnings
+from element_calcium_imaging import scan
 
 
 def ingest_session_scan(session_key, session_path=r'C:\datajoint', verbose=False):
@@ -31,6 +32,7 @@ def ingest_session_scan(session_key, session_path=r'C:\datajoint', verbose=False
     basenames = [x.name for x in dirs]
     
     scan_keys = [re.findall(scan_pattern, x) for x in basenames]
+    scan_basenames = [x for x in basenames if bool(re.search(scan_pattern, x))]
     
     for idx, k in enumerate(scan_keys):
         print(scan_keys)
@@ -77,5 +79,23 @@ def ingest_session_scan(session_key, session_path=r'C:\datajoint', verbose=False
     except DuplicateError:
        warnings.warn(f'SessionUser {session_key, user} already inserted. Skipped!')
 
-    
-    
+    # Insert each scan
+    for idx, s in enumerate(scan_keys):
+        equipment_placeholder = "Equipment"  # Resolve how to extract equipment
+        software_placeholder = "ScanImage"
+        location_placeholder = "Location"
+        path = p / scan_basenames[idx]
+        try:
+            scan.Scan.insert1((session_key, s, equipment_placeholder, software_placeholder, ''))
+        except DuplicateError:
+            warnings.warn(f'Scan {s} already inserted. Skipped')
+        
+        try:
+            scan.ScanLocation.insert1((session_key, s, location_placeholder))
+        except DuplicateError:
+            warnings.warn(f"ScanLocation for {s} already inserted. Skipped")
+            
+        try:
+            scan.ScanPath.insert1((session_key, s, user, path))
+        except DuplicateError:
+            warnings.warn(f"ScanPath for {s} already inserted. Skipped.")
