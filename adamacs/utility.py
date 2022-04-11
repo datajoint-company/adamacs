@@ -1,9 +1,9 @@
+import rspace as rc
 import importlib
 import inspect
-
-import datajoint as dj
-import scipy.io as sio
-from .schemas import subject, surgery
+import json
+import os
+from . import subject, surgery, session, behavior, scan
 
 _linking_module = None
 

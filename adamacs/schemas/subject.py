@@ -10,7 +10,7 @@ schema = dj.schema()
 @schema
 class Lab(dj.Manual):
     definition = """
-    lab             : varchar(8)   # short lab name   
+    lab             : varchar(8)   # short lab name, pyrat labid
     ---
     lab_name        : varchar(255)
     institution     : varchar(255)
@@ -19,12 +19,22 @@ class Lab(dj.Manual):
 
 
 @schema
+class User(dj.Lookup):
+    definition = """
+    user_id        : int
+    ---
+    name           : varchar(32)
+    -> [nullable] Lab
+    """
+
+
+@schema
 class Protocol(dj.Manual):
     definition = """
-    # protocol approved by some institutions like IACUC, IRB
-    protocol                        : varchar(16)
+    # PyRAT licence number and title
+    protocol                        : varchar(32)
     ---
-    protocol_description=''         : varchar(255)
+    protocol_description=''         : varchar(64)
     """
 
 
@@ -32,11 +42,10 @@ class Protocol(dj.Manual):
 class Line(dj.Manual):
     definition = """
     # animal line 
-    line                        : varchar(32)
+    line                        : int
     ---
-    line_name=''                : varchar(3000)
-    target_genotype=''          : varchar(255)
-    is_active                   : boolean
+    line_name=''                : varchar(64)
+    is_active                   : int
     """
 
 
@@ -45,19 +54,9 @@ class Mutation(dj.Manual):
     definition = """
     # The mutations of animal lines
     -> Line
-    mutation                    : varchar(32)
+    mutation_id                 : int
     ---
-    description=''              : varchar(2000)
-    """
-
-
-@schema
-class User(dj.Lookup):
-    definition = """
-    user                : varchar(32)
-    ---
-    full_name           : varchar(300)
-    -> Lab
+    description=''              : varchar(32)
     """
 
 
@@ -76,22 +75,19 @@ class Subject(dj.Manual):
     # Animal Subject
     # Our Animals are not uniquely identified by their ID
     # because different labs use different animal facilities.
-    # CB: I see cage as an item in PyRAT export - relevant in analysis?
 
-    subject                 : varchar(16)  # ID
+    subject                 : varchar(16)  # PyRat import uses this for earmark value
     ---
-    -> Lab
-    earmark=''              : varchar(16)  # aka lab_id
+    earmark=''              : varchar(16)  #
     sex                     : enum('M', 'F', 'U')  # Geschlecht
-    birth_date              : date  # Geb.
+    birth_date=''           : varchar(32) # date  # Geb.
     subject_description=''  : varchar(1024)
-    generation              : varchar(255)  # Generation (F2 in example sheet)
-    owner                   : varchar(255)  # Besitzer
-    responsible             : varchar(255)  # Verantwortlicher
-    -> Line                 # Linie / Stamm
-    -> User                 # 
-    -> Project
-    -> Protocol
+    generation=''           : varchar(64)     # Generation (F2 in example sheet)
+    parent_ids=NULL         : tinyblob        # dict of parent_sex: parent_eartag
+    -> [nullable] User.proj(owner_id='user_id')          # Besitzer
+    -> [nullable] User.proj(responsible_id='user_id')    # Verantwortlicher
+    -> [nullable] Line                 # Linie / Stamm
+    -> [nullable] Protocol
     """
 
 
