@@ -6,7 +6,7 @@ raw data and relates them to the Recording.
 """
 
 import datajoint as dj
-from . import session
+from element_session import session_with_id
 from .. import db_prefix
 # db_prefix + 'behavior'
 schema = dj.schema()
@@ -21,7 +21,7 @@ __all__ = ['session', 'RecordingBpod', 'TrialType', 'Trial', 'EventType', 'Event
 class RecordingBpod(dj.Manual):
     definition = """
     # CB: Does this recording_dir differ from session.Recording recording_dir?
-    -> session.Session
+    -> session_with_id.Session
     ---
     recording_dir : varchar(1024) # Path to the data directory for a particular session
     """
@@ -41,7 +41,7 @@ class Trial(dj.Imported):
     definition = """
     # CB modeled after example bpod datastructure
     # each recording has a list of trials
-    -> session.Session
+    -> session_with_id.Session
     trial : smallint # trial number (1-based indexing)
     ---
     start_time : float  # (second) relative to the start of the recording
@@ -63,7 +63,7 @@ class EventType(dj.Lookup):
 @schema
 class Event(dj.Imported):
     definition = """
-    -> session.Session
+    -> session_with_id.Session
     -> EventType
     event_start_time: decimal(8, 4)   # (s) from recording start
     ---

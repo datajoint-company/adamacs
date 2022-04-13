@@ -1,9 +1,11 @@
-import rspace as rc
+# import rspace as rc
 import importlib
 import inspect
 import json
 import os
-from . import subject, surgery, session, behavior, scan
+from .schemas import subject, surgery, behavior
+from element_session import session_with_id
+from element_calcium_imaging import scan
 
 _linking_module = None
 
@@ -45,7 +47,7 @@ def activate_many(schemas=module_list, name='tutorial'):
         # activate(schema, create_schema=True, create_tables=True,
         #          schema_name='tutorial', linking_module=schema)
 
-
+"""
 def rspace_connect():
     # Ask admin to get you the local_conf file
     local_dir = os.path.dirname(__file__)
@@ -55,3 +57,4 @@ def rspace_connect():
     # client = rc.Client(local_conf['server'], local_conf['apiKey'])
     # client.get_document('SD37310')
     return rc.Client(local_conf['server'], local_conf['apiKey'])
+"""
