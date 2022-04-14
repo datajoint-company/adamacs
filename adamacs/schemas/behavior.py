@@ -6,7 +6,7 @@ raw data and relates them to the Recording.
 """
 
 import datajoint as dj
-from element_session import session_with_id as session
+from ..pipeline import session
 from .. import db_prefix
 # db_prefix + 'behavior'
 schema = dj.schema(db_prefix + 'behavior')
