@@ -42,7 +42,7 @@ def get_dlc_processed_data_dir() -> str:
 def get_imaging_root_data_dir():
     """"""
     root_data_dirs = dj.config.get('custom', {}).get('imaging_root_data_dir', None)
-    return root_data_dirs if root_data_dirs else None
+    return root_data_dirs if root_data_dirs else [r'C:\datajoint']
 
 
 def get_scan_image_files(scan_key):

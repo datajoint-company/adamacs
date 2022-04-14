@@ -1,7 +1,7 @@
 import datajoint as dj
 from .. import db_prefix
 
-schema = dj.schema()
+schema = dj.schema(db_prefix + 'subject')
 
 
 # -------------- Table declarations --------------
@@ -97,8 +97,9 @@ class SubjectGenotype(dj.Manual):
     -> Subject
     -> Mutation
     ---
-    genotype        : enum('wt/wt', 'wt/tg', 'tg/wt', 'tg/tg')
+    genotype        : enum('wt/wt', 'wt/tg', 'tg/wt', 'tg/tg', 'cre+', '+/-')
     """
+    # CB DEV NOTE: added 'cre+' and '+/-' to reflect pyrat sample database
 
 
 @schema
