@@ -1,5 +1,6 @@
 import datajoint as dj
 from pathlib import Path
+from element_interface.utils import find_full_path
 
 
 # ------------------- Session  -------------------
@@ -48,30 +49,34 @@ def get_imaging_root_data_dir():
 def get_scan_image_files(scan_key):
     """"""
     # Folder structure: root / subject / session / .tif (raw)
+    from .pipeline import session
     data_dir = get_imaging_root_data_dir()
-    sess_dir = Path(data_dir + "/" + get_session_dir())
+    sess_dir = (session.SessionDirectory & scan_key).fetch1('session_dir')
+    full_dir = find_full_path(data_dir, sess_dir)
 
-    if not sess_dir.exists():
-        raise FileNotFoundError(f'Session directory not found ({sess_dir})')
+    if not full_dir.exists():
+        raise FileNotFoundError(f'Session directory not found ({full_dir})')
 
-    tiff_filepaths = [fp.as_posix() for fp in sess_dir.glob('*.tif')]
+    tiff_filepaths = [fp.as_posix() for fp in full_dir.glob('*.tif')]
     if tiff_filepaths:
         return tiff_filepaths
     else:
-        raise FileNotFoundError(f'No tiff file found in {sess_dir}')
+        raise FileNotFoundError(f'No tiff file found in {full_dir}')
 
 
 def get_scan_box_files(scan_key):
     """"""
     # Folder structure: root / subject / session / .sbx
+    from .pipeline import session
     data_dir = get_imaging_root_data_dir()
-    sess_dir = Path(data_dir + "/" + get_session_dir())
+    sess_dir = (session.SessionDirectory & scan_key).fetch1('session_dir')
+    full_dir = find_full_path(data_dir, sess_dir)
 
-    if not sess_dir.exists():
-        raise FileNotFoundError(f'Session directory not found ({sess_dir})')
+    if not full_dir.exists():
+        raise FileNotFoundError(f'Session directory not found ({full_dir})')
 
-    sbx_filepaths = [fp.as_posix() for fp in sess_dir.glob('*.sbx')]
+    sbx_filepaths = [fp.as_posix() for fp in full_dir.glob('*.sbx')]
     if sbx_filepaths:
         return sbx_filepaths
     else:
-        raise FileNotFoundError(f'No .sbx file found in {sess_dir}')
+        raise FileNotFoundError(f'No .sbx file found in {full_dir}')

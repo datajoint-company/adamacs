@@ -16,7 +16,7 @@ from element_interface.utils import find_full_path
 """
 
 
-def ingest_session_scan(session_key, session_paths=get_imaging_root_data_dir(),
+def ingest_session_scan(session_key, root_paths=get_imaging_root_data_dir(),
                         verbose=False):
     """Locate all directories in session_path that are part
     of the sesssion. Extract the following attributes from
@@ -25,8 +25,10 @@ def ingest_session_scan(session_key, session_paths=get_imaging_root_data_dir(),
         session_datetime
         User
     """
+    if not verbose:
+        warnings.filterwarnings('ignore')
 
-    paths = [pathlib.Path(path) for path in session_paths]
+    paths = [pathlib.Path(path) for path in root_paths]
     valid_paths = [p for p in paths if p.is_dir()]
     match_paths = []
     for p in valid_paths:
@@ -34,7 +36,7 @@ def ingest_session_scan(session_key, session_paths=get_imaging_root_data_dir(),
     
     n_scans = len(match_paths)
     if verbose:
-        print(f"Number of scans found: {n_scans}")
+        print(f'Number of scans found: {n_scans}')
 
     scan_pattern = "scan.{8}"
     basenames = [x.name for x in match_paths]
@@ -46,7 +48,7 @@ def ingest_session_scan(session_key, session_paths=get_imaging_root_data_dir(),
             print(scan_keys)
             print(basenames)
         if len(k) != 1:
-            raise ValueError(f"Directory name contains {len(k)} scan keys. Must be 1.")
+            raise ValueError(f'Directory name contains {len(k)} scan keys. Must be 1.')
         scan_keys[idx] = k[0]
 
     # Find the animal ID by position
@@ -56,16 +58,15 @@ def ingest_session_scan(session_key, session_paths=get_imaging_root_data_dir(),
         raise ValueError("Scans from multiple animals found. Must be 1 animal.")
     subject_id = subjects[0]
     if not (subject.Subject & f'subject=\"{subject_id}\"'):
-        raise ValueError(f"Subject {subject_id} must be added before this session.")
+        raise ValueError(f'Subject {subject_id} must be added before this session.')
 
     # Find the user ID by position
     # CB NOTE: Will future data folders match user_id int values from pyrat ingestion?
     user_keys = [x.split('_')[0] for x in basenames]
     if not all_equal(user_keys):
         raise ValueError("Scans from multiple users found. Must be 1 user.")
-    # user = user_keys[0]
     user_placeholder = 1
-    user = user_placeholder
+    user = user_placeholder  # previously: user_keys[0]
 
     dates = [x.split('_')[2] for x in basenames]
     if not all_equal(dates):
@@ -78,13 +79,12 @@ def ingest_session_scan(session_key, session_paths=get_imaging_root_data_dir(),
         warnings.warn(f'\nSkipped existing session row: {session_key, subject, date}',
                       stacklevel=2)
     
-    # CB NOTE: Ideally, this would store a relative path that could change across
-    #          mounted root directories. Currently stores full path.
+    # CB NOTE: I think this should be modified to store the relative path
     try:
-        session.SessionDirectory.insert1((session_key, match_paths[0].parent, user))
+        session.SessionDirectory.insert1((session_key, match_paths[0], user))
     except DuplicateError:
         warnings.warn('\nSkipped existing SessionDirectory: '
-                      + f'{session_key, match_paths[0].parent}', stacklevel=2)
+                      + f'{session_key, match_paths[0]}', stacklevel=2)
         
     try:
         session.SessionUser.insert1((session_key, user))
@@ -94,21 +94,21 @@ def ingest_session_scan(session_key, session_paths=get_imaging_root_data_dir(),
 
     # Insert each scan
     for idx, s in enumerate(scan_keys):
-        equipment_placeholder = "Equipment"  # Resolve how to extract equipment
+        equipment_placeholder = "Equipment"  # TODO: Resolve how to extract equipment
         software_placeholder = "ScanImage"
         location_placeholder = "Location"
-        path = find_full_path(session_paths, scan_basenames[idx])
+        path = find_full_path(root_paths, scan_basenames[idx])
         try:
             scan.Scan.insert1((session_key, s, equipment_placeholder,
                                software_placeholder, ''))
         except DuplicateError:
-            warnings.warn(f'\nScan {s} already inserted. Skipped',
+            warnings.warn(f'\nSkipped existing scan: {s}',
                           stacklevel=2)
         
         try:
             scan.ScanLocation.insert1((session_key, s, location_placeholder))
         except DuplicateError:
-            warnings.warn(f"\nScanLocation for {s} already inserted. Skipped",
+            warnings.warn(f'\nSkipped existing ScanLocation: {s}',
                           stacklevel=2)
         # CB DEV NOTE: 1. How does ScanPath differ from SessionDirectory?
         #              2. Removed s scankey from this insert. Does ScanPath need
@@ -116,7 +116,7 @@ def ingest_session_scan(session_key, session_paths=get_imaging_root_data_dir(),
         try:
             scan.ScanPath.insert1((session_key, user, path))
         except DuplicateError:
-            warnings.warn(f"\nScanPath for {s} already inserted. Skipped.",
+            warnings.warn(f'\nSkipped existing ScanPath: {s}',
                           stacklevel=2)
 
 
