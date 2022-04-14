@@ -65,22 +65,19 @@ Location.insert1({'anatomical_location': location_placeholder}, skip_duplicates=
 
 isess.ingest_session_scan('sess9FB2LN5C')
 
+session.Session * session.SessionDirectory
+
 key='scan9FB2LN5C'
-(scan.Scan & f'scan_id=\"{key}\"').fetch1('acq_software')
+(scan.Scan & f'scan_id=\"{key}\"')
 
 scan.ScanInfo.populate()
 
-# %debug
-
-key='scan9FB2LN5C'
-
-query = (scan.Scan & f"scan_id = '{key}'").fetch1()
-query
+# `CB DEV NOTE:` In demo file, there are no `scan.motor_position_at_zero` values. Set to 0 here to avoid downstream type errors when adding. Future would should set these to null when not present and revise downstream code.
 
 scan.ScanInfo()
 
 scan.ScanInfo.Field()
 
+# Note the relative path below:
+
 scan.ScanInfo.ScanFile()
-
-

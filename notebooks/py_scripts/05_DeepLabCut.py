@@ -54,9 +54,11 @@ from adamacs.pipeline import subject, train, model
 # Refer the `user_data` folder in the `adamacs` directory contains CSVs for inserting values into DeepLabCut tables.
 #
 # 1. `config_params.csv` is used for training parameter sets in `train.TrainingParamSet`. The following items are required, but others will also be passed to DLC's `train_network` function when called 
-#     + ``
-#     + `shuffle` - Training data shuffle 
-#     + `trainingsetindex` - Training fraction in 0-indexed list
+# + ``
+
+# + `shuffle` - Training data shuffle
+
+# + `trainingsetindex` - Training fraction in 0-indexed list
 # 2. `train_videosets.csv` and `model_videos.csv` pass values to `train.VideoSet` and `model.VideoRecording` respectively.
 # 3. `adamacs.ingest.dlc.ingest_dlc_items` will load each of these CSVs
 #
