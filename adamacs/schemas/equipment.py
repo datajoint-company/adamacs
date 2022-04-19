@@ -6,7 +6,7 @@ import datajoint as dj
 from .. import db_prefix
 schema = dj.schema(db_prefix + 'equipment')
 
-__all__ = ['db_prefix']
+__all__ = ['db_prefix', 'Equipment']
 
 # -------------- Table declarations --------------
 
