@@ -57,7 +57,8 @@ url = 'https://pyrat.uniklinik-bonn.de/pyrat-test/api/v2/'
 class PyratIngestion:
     def __init__(self):
         # Ensure credentials
-        assert dj.config['custom']['pyrat_client_token'], \
+        assert (dj.config['custom']['pyrat_client_token']
+                and dj.config['custom']['pyrat_user_token']), \
             'Need pyrat client/user tokens in dj.config'
 
         # Establish Authentication
@@ -172,21 +173,19 @@ class PyratIngestion:
         titles = ['User(s)', 'Protocol(s)', 'Line(s)', 'Mutation(s)', 'Subjects']
         for insert, key, title in zip(inserts, print_key, titles):
             print(f'{title}: ', list(i[key] for i in insert), '\n')
-        if prompt and dj.utils.user_choice('Proceed with new subject schema insert?'
+        if prompt and dj.utils.user_choice('Proceed with new subject(s) insert?'
                                            ) != 'yes':
             print('Canceled insert.')
             return
 
         with subject.Subject.connection.transaction:
-                # --- Inserts ---
-                subject.User.insert(user_list)
-                subject.Protocol.insert(protocol_list)
-                subject.Line.insert(line_list)
-                # need additional logic above to prevent adding duplicates to list
-                subject.Mutation.insert(mutation_list)  # , skip_duplicates=True)
-                subject.Subject.insert(subject_list)
-                # foreign key contstraint fail bc line_list is missing items
-                subject.SubjectGenotype.insert(genotype_list)
+            # --- Inserts ---
+            subject.User.insert(user_list)
+            subject.Protocol.insert(protocol_list)
+            subject.Line.insert(line_list)
+            subject.Mutation.insert(mutation_list)
+            subject.Subject.insert(subject_list)
+            subject.SubjectGenotype.insert(genotype_list)
 
     def strain_status(self, strain_id: str):
         """For a given a given strain_id, return 'active'

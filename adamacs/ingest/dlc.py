@@ -5,8 +5,8 @@ import csv
 import ruamel.yaml as yaml
 from element_interface.utils import find_full_path
 
-from ..pipeline import subject, session, train, model
-from .paths import get_dlc_root_data_dir
+from ..pipeline import train, model
+from ..paths import get_dlc_root_data_dir
 
 
 def ingest_general(csvs, tables, verbose=True, skip_duplicates=True):
@@ -28,31 +28,6 @@ def ingest_general(csvs, tables, verbose=True, skip_duplicates=True):
         if verbose:
             print(f'\n---- Inserting {insert_len} entry(s) '
                   + f'into {table.table_name} ----')
-
-
-def ingest_subjects(subject_csv_path='./user_data/subjects.csv',
-                    skip_duplicates=True):
-    """
-    Inserts data from ./user_data/subject.csv into corresponding subject schema tables
-
-    :param subject_csv_path:     relative path of subject csv
-    :param skip_duplicates=True: datajoint insert function param
-    """
-    csvs = [subject_csv_path]
-    tables = [subject.Subject()]
-    ingest_general(csvs, tables, skip_duplicates=skip_duplicates)
-
-
-def ingest_sessions(session_csv_path='./user_data/sessions.csv',
-                    skip_duplicates=True):
-    """
-    Ingests to session schema from ./user_data/sessions.csv
-    """
-    csvs = [session_csv_path, session_csv_path, session_csv_path]
-    tables = [session.Session(), session.SessionDirectory(),
-              session.SessionNote()]
-
-    ingest_general(csvs, tables, skip_duplicates=skip_duplicates)
 
 
 def ingest_dlc_items(config_params_csv_path='./user_data/config_params.csv',
@@ -99,6 +74,4 @@ def ingest_dlc_items(config_params_csv_path='./user_data/config_params.csv',
 
 
 if __name__ == '__main__':
-    ingest_subjects()
-    ingest_sessions()
     ingest_dlc_items()

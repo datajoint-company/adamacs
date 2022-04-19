@@ -1,0 +1,3 @@
+paramset_idx,paramset_desc,config_path,shuffle,trainingsetindex,scorer_legacy,maxiters
+1,from_top_5iters,DLC_tracking/config.yaml,1,0,False,5
+2,from_top_200k,DLC_tracking/config.yaml,1,0,False,200000
