@@ -45,6 +45,7 @@ class Line(dj.Manual):
     line                        : int
     ---
     line_name=''                : varchar(64)
+    is_active                   : int
     """
 
 
