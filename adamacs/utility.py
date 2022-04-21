@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # import rspace as rc
 import importlib
 import inspect
@@ -6,6 +7,20 @@ import os
 from .schemas import subject, surgery, behavior
 from element_session import session_with_id
 from element_calcium_imaging import scan
+=======
+"""
+pipeline.py now includes the activation functions required for imported schema and
+    individual adamacs schema are activated  with the db_prefix convention,
+    circumventing the need for these functions
+"""
+
+# import rspace as rc
+# import json
+# import os
+import importlib
+import inspect
+from .pipeline import subject, surgery  # , session, behavior, scan
+>>>>>>> c639267a501439156110368ad695b7be4a2fcf7d
 
 _linking_module = None
 
@@ -49,12 +64,20 @@ def activate_many(schemas=module_list, name='tutorial'):
 
 """
 def rspace_connect():
+    # CB: DEPRECIATED?
     # Ask admin to get you the local_conf file
-    local_dir = os.path.dirname(__file__)
-    with open(os.path.join(local_dir, 'rspace_local_conf.json')) as jsonFile:
-        local_conf = json.load(jsonFile)
+    # local_dir = os.path.dirname(__file__)
+    # with open(os.path.join(local_dir, 'rspace_local_conf.json')) as jsonFile:
+    #     local_conf = json.load(jsonFile)
 
+<<<<<<< HEAD
     # client = rc.Client(local_conf['server'], local_conf['apiKey'])
     # client.get_document('SD37310')
     return rc.Client(local_conf['server'], local_conf['apiKey'])
 """
+=======
+    # # client = rc.Client(local_conf['server'], local_conf['apiKey'])
+    # # client.get_document('SD37310')
+    # return rc.Client(local_conf['server'], local_conf['apiKey'])
+    pass
+>>>>>>> c639267a501439156110368ad695b7be4a2fcf7d

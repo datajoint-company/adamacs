@@ -1,4 +1,4 @@
-datajoint
+datajoint>=0.13
 scipy
 numpy
 pandas
@@ -6,13 +6,11 @@ ipysheet
 requests
 matplotlib
 graphviz
-# ruamel
-# csv
-rspace-client
+ruamel.yaml
+rspace-client==1.6.0
 element-interface @ git+https://github.com/datajoint/element-interface.git@main
 element-calcium-imaging @ git+https://github.com/SFB1089/element-calcium-imaging.git@main
 element-session @ git+https://github.com/SFB1089/element-session.git@main
 element-event @ git+https://github.com/SFB1089/element-event.git@master
 pywavesurfer @ git+https://github.com/SFB1089/PyWaveSurfer.git
 scanreader @ git+https://github.com/SFB1089/scanreader.git
-
