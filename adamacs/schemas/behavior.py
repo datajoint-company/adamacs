@@ -21,7 +21,7 @@ __all__ = ['session', 'RecordingBpod', 'TrialType', 'Trial', 'EventType', 'Event
 class RecordingBpod(dj.Manual):
     definition = """
     # CB: Does this recording_dir differ from session.Recording recording_dir?
-    -> session_with_id.Session
+    -> session.Session
     ---
     recording_dir : varchar(1024) # Path to the data directory for a particular session
     """
@@ -41,7 +41,7 @@ class Trial(dj.Imported):
     definition = """
     # CB modeled after example bpod datastructure
     # each recording has a list of trials
-    -> session_with_id.Session
+    -> session.Session
     trial : smallint # trial number (1-based indexing)
     ---
     start_time : float  # (second) relative to the start of the recording
@@ -63,7 +63,7 @@ class EventType(dj.Lookup):
 @schema
 class Event(dj.Imported):
     definition = """
-    -> session_with_id.Session
+    -> session.Session
     -> EventType
     event_start_time: decimal(8, 4)   # (s) from recording start
     ---
