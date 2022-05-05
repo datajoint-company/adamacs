@@ -114,7 +114,7 @@ def ingest_session_scan(session_key, root_paths=get_imaging_root_data_dir(),
         #              2. Removed s scankey from this insert. Does ScanPath need
         #                 expanding to include ScanKey?
         try:
-            scan.ScanPath.insert1((session_key, user, path))
+            scan.ScanPath.insert1((session_key, s, user, path))
         except DuplicateError:
             warnings.warn(f'\nSkipped existing ScanPath: {s}',
                           stacklevel=2)
