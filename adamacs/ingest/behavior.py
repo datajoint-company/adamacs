@@ -78,10 +78,7 @@ def ingest_aux(session_key, root_paths=get_imaging_root_data_dir(),
             raise ValueError(f"More or less than 1 aux_files found in {k}")
         curr_file = ws.loadDataFile(filename=aux_file_paths[0], format_string='double' )
         aux_files.append(curr_file)
-    
-    # sweep = [x for x in aux_files[0].keys() if 'sweep' in x][0]
-    aux_files[0]['header']
-    
+        
     start_datetime = aux_files[0]['header']['ClockAtRunStart'][:, 0]
     start_datetime = [x for x in start_datetime]
     for idx, x in enumerate(start_datetime):
@@ -93,7 +90,6 @@ def ingest_aux(session_key, root_paths=get_imaging_root_data_dir(),
     sweep_duration = aux_files[0]['header']['SweepDuration'][0][0]
 
     event.BehaviorRecording.insert1({'session_id': session_key, 'recording_start_time': start_datetime, 'recording_duration': sweep_duration}, skip_duplicates=True)
-    # TODO INSERT BehaviorRecording.File
     for p in aux_file_paths:
         event.BehaviorRecording.File.insert1([session_key, p])
     for curr_aux in aux_files:
@@ -145,57 +141,3 @@ def ingest_aux(session_key, root_paths=get_imaging_root_data_dir(),
         for event_type, timestamps in event_types.items():
             to_insert = prepare_timestamps(timestamps, session_key, event_type)
             event.Event.insert(to_insert, skip_duplicates=True, allow_direct_insert=True)
-        """
-        if ts_main_track_gate_chan.any():
-            to_insert = prepare_timestamps(ts_main_track_gate_chan, session_key, 'main_track_gate')
-            event.Event.insert(to_insert, skip_duplicates=True, allow_direct_insert=True)
-        if ts_shutter_chan.any():
-            to_insert = prepare_timestamps(ts_shutter_chan, session_key, 'shutter')
-            event.Event.insert(to_insert, skip_duplicates=True, allow_direct_insert=True)
-        if ts_mini2p_frame_chan.any():
-            to_insert = prepare_timestamps(ts_mini2p_frame_chan, session_key, 'mini2p_frames')
-            event.Event.insert(to_insert, skip_duplicates=True, allow_direct_insert=True)
-        if ts_mini2p_line_chan.any():
-            to_insert = prepare_timestamps(ts_mini2p_line_chan, session_key, 'mini2p_lines')
-            event.Event.insert(to_insert, skip_duplicates=True, allow_direct_insert=True)
-        """
-        
-        
-        # ts_mini2p_frame_chan = get_timestamps(mini2p_frame_chan, sr)
-        # ts_mini2p_line_chan = get_timestamps(mini2p_line_chan, sr)
-        # ts_mini2p_vol_chan = get_timestamps(mini2p_vol_chan, sr)
-        
-
-
-    """
-    # ANALOG SIGNALS
-    cam_trigger = hf[sweep]['analogScans'][0]
-    bpod_trial_vis_chan = hf[sweep]['analogScans'][1]
-    bpod_reward1_chan = hf[sweep]['analogScans'][2]
-    bpod_tone_chan = hf[sweep]['analogScans'][3]
-
-    fig, ax = plt.subplots(9)
-    ax[0].plot(timebase, main_track_gate_chan)
-    ax[1].plot(timebase, shutter_chan)
-    ax[2].plot(timebase, mini2p_frame_chan)
-    ax[3].plot(timebase, mini2p_line_chan)
-    ax[4].plot(timebase, mini2p_vol_chan)
-    ax[5].plot(timebase, cam_trigger)
-    ax[6].plot(timebase, bpod_trial_vis_chan)
-    ax[7].plot(timebase,bpod_tone_chan)
-    ax[8].plot(timebase, bpod_reward1_chan)
-
-    for a in ax[:-1]:
-        a.set_xticks([])
-
-    ax[0].set_ylabel('Track Gate /\nMaster trigger')
-    ax[1].set_ylabel('Laser Shutter')
-    ax[2].set_ylabel("mini2p frames")
-    ax[3].set_ylabel("mini2p lines")
-    ax[4].set_ylabel("mini2p volumes")
-    ax[5].set_ylabel("Track cam\nframes")
-    ax[6].set_ylabel("BPOD Trial start")
-    ax[7].set_ylabel("BPOD Tone")
-    ax[8].set_ylabel("BPOD reward /\npunish")
-    ax[8].set_xlabel("time (s)")
-    """
