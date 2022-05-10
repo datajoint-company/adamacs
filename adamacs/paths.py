@@ -17,6 +17,17 @@ def get_bpod_root_data_dir():
     beh_root_dirs = dj.config.get('custom', {}).get('beh_root_data_dir', None)
     return beh_root_dirs if beh_root_dirs else None
 
+def get_aux_file(scan_dir):
+    """Find aux file in scan dir, which contains 'StimArenaMaster'"""
+    if not scan_dir.exists():
+        raise FileNotFoundError(f'Session directory not found ({full_dir})')
+
+    tiff_filepaths = [fp.as_posix() for fp in scan_dir.glob('*.tif')]
+    if tiff_filepaths:
+        return tiff_filepaths
+    else:
+        raise FileNotFoundError(f'No tiff file found in {full_dir}')
+
 
 # ------------------ DeepLabCut ------------------
 def get_dlc_root_data_dir():

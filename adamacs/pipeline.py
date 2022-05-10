@@ -43,3 +43,7 @@ model.activate(db_prefix + 'model', linking_module=__name__)
 imaging.activate(db_prefix + 'imaging',
                  db_prefix + 'scan',
                  linking_module=__name__)
+
+trial.activate(db_prefix + 'trial',
+               db_prefix + 'event',
+               linking_module=__name__)
