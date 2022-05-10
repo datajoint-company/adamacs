@@ -14,4 +14,4 @@ element-session @ git+https://github.com/SFB1089/element-session.git@main
 element-event @ git+https://github.com/SFB1089/element-event.git@master
 element-deeplabcut @ git+https://github.com/datajoint/element-deeplabcut.git@main
 pywavesurfer @ git+https://github.com/SFB1089/PyWaveSurfer.git
-scanreader @ git+https://github.com/SFB1089/scanreader.git
+scanreader @ git+https://github.com/atlab/scanreader.git
