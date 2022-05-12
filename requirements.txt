@@ -2,13 +2,14 @@ datajoint>=0.13
 scipy
 numpy
 pandas
-ipysheet
+# ipysheet
 requests
 matplotlib
 graphviz
 ruamel.yaml
-rspace-client==1.6.0
-element-interface @ git+https://github.com/datajoint/element-interface.git@main
+# rspace-client==1.6.0
+# element-deeplabcut already requires element-interface
+# element-interface @ git+https://github.com/datajoint/element-interface.git@main
 element-calcium-imaging @ git+https://github.com/SFB1089/element-calcium-imaging.git@main
 element-session @ git+https://github.com/SFB1089/element-session.git@main
 element-event @ git+https://github.com/SFB1089/element-event.git@master
