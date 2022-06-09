@@ -34,7 +34,7 @@ class Protocol(dj.Manual):
     # PyRAT licence number and title
     protocol                        : varchar(32)
     ---
-    protocol_description=''         : varchar(64)
+    protocol_description=''         : varchar(255)
     """
 
 
@@ -45,7 +45,7 @@ class Line(dj.Manual):
     line                        : int
     ---
     line_name=''                : varchar(64)
-    is_active                   : int
+    is_active                   : int           # bool: 1==True, active
     """
 
 
@@ -76,18 +76,18 @@ class Subject(dj.Manual):
     # Our Animals are not uniquely identified by their ID
     # because different labs use different animal facilities.
 
-    subject                 : varchar(16)  # PyRat import uses this for earmark value
+    subject                 : varchar(16)     # PyRat import uses this for earmark value
     ---
-    earmark=''              : varchar(16)  #
+    earmark                 : varchar(16)     #
     sex                     : enum('M', 'F', 'U')  # Geschlecht
-    birth_date=''           : varchar(32) # date  # Geb.
+    birth_date              : varchar(32)          # Geb.
     subject_description=''  : varchar(1024)
     generation=''           : varchar(64)     # Generation (F2 in example sheet)
-    parent_ids=NULL         : tinyblob        # dict of parent_sex: parent_eartag
-    -> [nullable] User.proj(owner_id='user_id')          # Besitzer
-    -> [nullable] User.proj(responsible_id='user_id')    # Verantwortlicher
-    -> [nullable] Line                 # Linie / Stamm
-    -> [nullable] Protocol
+    parent_ids              : tinyblob        # dict of parent_sex: parent_eartag
+    -> User.proj(owner_id='user_id')          # Besitzer
+    -> User.proj(responsible_id='user_id')    # Verantwortlicher
+    -> Line                                   # Linie / Stamm
+    -> Protocol
     """
 
 
@@ -97,9 +97,8 @@ class SubjectGenotype(dj.Manual):
     -> Subject
     -> Mutation
     ---
-    genotype        : enum('wt/wt', 'wt/tg', 'tg/wt', 'tg/tg', 'cre+', '+/-')
+    genotype        : enum('wt/wt', 'wt/tg', 'tg/wt', 'tg/tg')
     """
-    # CB DEV NOTE: added 'cre+' and '+/-' to reflect pyrat sample database
 
 
 @schema
@@ -107,6 +106,6 @@ class SubjectDeath(dj.Manual):
     definition = """
     -> Subject
     ---
-    death_date      : date       # death date
-    cause           :    varchar(255)
+    death_date      : date
+    cause           : varchar(255)
     """

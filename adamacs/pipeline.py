@@ -1,7 +1,7 @@
 from . import db_prefix
 
 __all__ = ['subject', 'surgery', 'session', 'behavior', 'equipment', 'scan', 'imaging',
-           'train', 'model',
+           'train', 'model', 'trial', 'event',
            'Equipment', 'Location', 'Subject', 'Project', 'Lab', 'User',
            'Session',
            'get_session_dir', 'get_bpod_root_data_dir', 'get_dlc_root_data_dir',
