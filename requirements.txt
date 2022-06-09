@@ -2,11 +2,11 @@ datajoint>=0.13
 scipy
 numpy
 pandas
-# ipysheet
 requests
 matplotlib
 graphviz
 ruamel.yaml
+suite2p
 # rspace-client==1.6.0
 # element-deeplabcut already requires element-interface
 # element-interface @ git+https://github.com/datajoint/element-interface.git@main
