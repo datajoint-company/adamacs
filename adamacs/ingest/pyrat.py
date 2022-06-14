@@ -169,7 +169,6 @@ class PyratIngestion:
                                  'earmark': animal['labid'],
                                  'sex': animal['sex'],
                                  'birth_date': animal['dateborn'] or None,
-                                 # 'subject_description': ??, # pyrat animal_color?
                                  'generation': animal['generation'] or None,
                                  'parent_ids': parent_ids or None,
                                  'owner_id': owner_id,
@@ -205,8 +204,10 @@ class PyratIngestion:
             subject.SubjectGenotype.insert(genotype_list)
 
     def strain_status(self, strain_id: str):
-        """For a given a given strain_id, return 'active'
-        is_active is the only info uniquely within the strains table
+        """
+        For a given a given strain_id, return 'active'. Within PyRAT, is_active is 
+        only stored in the strains table. If strain does not appear in the strains 
+        table, return unknown.
 
         :param strain_id: strain id from the animal table
         """
@@ -215,9 +216,9 @@ class PyratIngestion:
                                           params=requested_params
                                           ).content)
         
-        # CB Dev note: It seems that all listed strains in PyRAT are 'active'.
-        # Others are are unlisted. Therefore inactive? Emailed Valentin Stein to confirm
-        return payload[0]['active'] if payload else 0
+        active_labels = ['inactive', 'active']
+        
+        return active_labels[payload[0]['active']] if payload else 'unknown'
 
 
 def restrict_by(payload, pkey, dest_table=None, tkey=None):

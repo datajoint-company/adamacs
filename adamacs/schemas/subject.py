@@ -42,10 +42,10 @@ class Protocol(dj.Manual):
 class Line(dj.Manual):
     definition = """
     # animal line 
-    line                        : int
+    line                        : int  # strain_id within PyRAT. Not name_id seen in GUI
     ---
     line_name=''                : varchar(64)
-    is_active                   : int           # bool: 1==True, active
+    is_active                   : enum('active','inactive','unknown')
     """
 
 
@@ -81,7 +81,6 @@ class Subject(dj.Manual):
     earmark                 : varchar(16)     #
     sex                     : enum('M', 'F', 'U')  # Geschlecht
     birth_date              : varchar(32)          # Geb.
-    subject_description=''  : varchar(1024)
     generation=''           : varchar(64)     # Generation (F2 in example sheet)
     parent_ids              : tinyblob        # dict of parent_sex: parent_eartag
     -> User.proj(owner_id='user_id')          # Besitzer
