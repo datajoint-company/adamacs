@@ -8,9 +8,9 @@
 #       format_version: '1.5'
 #       jupytext_version: 1.13.7
 #   kernelspec:
-#     display_name: bonn
+#     display_name: Python 3.8.2 ('bonn')
 #     language: python
-#     name: bonn
+#     name: python3
 # ---
 
 # # PyRAT subject ingestion
@@ -38,8 +38,8 @@ dj.conn()
 
 # ## Initial check of tables
 
-# subject.User.delete(); subject.Protocol.delete()
-# subject.Line.delete(); subject.Subject.delete()
+subject.User.delete(); subject.Protocol.delete()
+subject.Line.delete(); subject.Subject.delete()
 print('User', len(subject.User()))
 print('Protocol', len(subject.Protocol()))
 print('Line', len(subject.Line()))
@@ -49,22 +49,15 @@ print('SubjectGenotype', len(subject.SubjectGenotype()))
 
 # ## Automated ingestion
 
-from adamacs.ingest.pyrat import PyratIngestion
-
-# This function permits wildcards when querying [the API](https://pyrat.uniklinik-bonn.de/pyrat-test/api/v2/specification/ui#/Listing/get_animals).
-#
 # The function is designed to list all proposed insertions and ask for a confirmation before entered into the schema.
 
-PyratIngestion().ingest_animal("HSC-01*")
+from adamacs.schemas import subject
+from adamacs.ingest.pyrat import PyratIngestion
+PyratIngestion().ingest_animal("ROS-1371")
 
-print('User', len(subject.User()))
-print('Protocol', len(subject.Protocol()))
-print('Line', len(subject.Line()))
-print('Mutation', len(subject.Mutation()))
-print('Subject', len(subject.Subject()))
-print('SubjectGenotype', len(subject.SubjectGenotype()))
+# This function also permits wildcards when querying [the API](https://pyrat.uniklinik-bonn.de/pyrat-test/api/v2/specification/ui#/Listing/get_animals).
 
-PyratIngestion().ingest_animal("HSC-02*")
+PyratIngestion().ingest_animal("ROS-137*")
 
 # ## Confirm entry
 

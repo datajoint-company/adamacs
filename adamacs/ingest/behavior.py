@@ -14,7 +14,7 @@ import pathlib
 import re
 import pdb
 
-path = r'E:\Dropbox\Dropbox\013_INF\INF_Raw_Data\DB_WEZ-8701_2022-03-18_scan9FB2LN5C_sess9FB2LN5C\scan9FB2LN5C_DB_WEZ-8701_2027.h5'
+
 def demultiplex(auxdata, channels=5):
     """Demultiplex the digital data"""
     auxdata = auxdata.flatten()

@@ -2,7 +2,6 @@ datajoint>=0.13
 scipy
 numpy
 pandas
-# ipysheet
 requests
 matplotlib
 graphviz
