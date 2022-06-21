@@ -16,10 +16,33 @@ SessionData = data['SessionData']
 
 # np.squeeze does not work on these singleton dimensions, returns empty array
 TrialData = SessionData['RawEvents'][0][0]['Trial']
-TrialDataStates = TrialData[0][0][0][0]['States']
-TimeToPort = TrialDataStates[0][0]['WaitForResponse']
-CueDelay = TrialDataStates[0][0]['CueDelay']
-Reward = SessionData[0][0]['TrialSettings']['GUI'][0][0]['RewardDelay']
-Drinking = TrialDataStates[0][0]['Drinking']
+# TrialDataStates = TrialData[0][0][0][0]['States']
+# TimeToPort = TrialDataStates[0][0]['WaitForResponse']
+# CueDelay = TrialDataStates[0][0]['CueDelay']
+# Reward = SessionData[0][0]['TrialSettings']['GUI'][0][0]['RewardDelay']
+# Drinking = TrialDataStates[0][0]['Drinking']
 
 # TODO: port ParseBpodPortEvents
+
+
+
+
+
+
+
+
+
+
+
+SessionData['RawEvents'][0][0]['Trial'][0][0][0][0]['States'][0][0][0][0]['CueDelay']
+
+
+
+
+
+
+
+
+
+
+

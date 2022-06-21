@@ -9,6 +9,7 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 from pywavesurfer import ws
+import pdb
 
 path = r'E:\Dropbox\Dropbox\013_INF\INF_Raw_Data\DB_WEZ-8701_2022-03-18_scan9FB2LN5C_sess9FB2LN5C\scan9FB2LN5C_DB_WEZ-8701_2027.h5'
 
@@ -65,7 +66,7 @@ ax[8].set_ylabel("BPOD reward /\npunish")
 ax[8].set_xlabel("time (s)")
 
 """Calculate timestamps"""
-def get_timestamps(data, sr, thr=1, inverse=False ):
+def get_timestamps(data, sr, thr=1, inverse=False):
     if data.dtype == 'bool':
         data = data > 0.5
     else:
@@ -73,8 +74,9 @@ def get_timestamps(data, sr, thr=1, inverse=False ):
     if inverse: data = not data
     
     diff = np.diff(data)
-    idc = np.argwhere(diff != 0)
+    idc = np.argwhere(diff != 0)[:, 0]
     timestamps = idc / sr
+
     return timestamps
 
 ts_main_track_gate_chan = get_timestamps(main_track_gate_chan, sr)
@@ -83,4 +85,5 @@ ts_mini2p_frame_chan = get_timestamps(mini2p_frame_chan, sr)
 ts_mini2p_line_chan = get_timestamps(mini2p_line_chan, sr)
 ts_mini2p_vol_chan = get_timestamps(mini2p_vol_chan, sr)
 
+ts_bpod_tone_chan = get_timestamps(bpod_tone_chan, sr)
 
