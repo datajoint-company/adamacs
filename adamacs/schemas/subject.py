@@ -45,7 +45,7 @@ class Line(dj.Manual):
     line                        : int  # strain_id within PyRAT. Not name_id seen in GUI
     ---
     line_name=''                : varchar(64)
-    is_active                   : enum('active','inactive','unknown')
+    is_active                   : enum('active','inactive','unknown')  # TODO BUGFIX expects float for unknown reason
     """
 
 
