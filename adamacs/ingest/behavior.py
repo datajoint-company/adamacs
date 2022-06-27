@@ -91,7 +91,7 @@ def ingest_aux(session_key, root_paths=get_imaging_root_data_dir(),
 
     event.BehaviorRecording.insert1({'session_id': session_key, 'recording_start_time': start_datetime, 'recording_duration': sweep_duration}, skip_duplicates=True)
     for p in aux_file_paths:
-        event.BehaviorRecording.File.insert1([session_key, p])
+        event.BehaviorRecording.File.insert1([session_key, p], skip_duplicates=True)
     for curr_aux in aux_files:
         sweep = [x for x in curr_aux.keys() if 'sweep' in x][0]
 
@@ -139,5 +139,5 @@ def ingest_aux(session_key, root_paths=get_imaging_root_data_dir(),
         }
         
         for event_type, timestamps in event_types.items():
-            to_insert = prepare_timestamps(timestamps, session_key, event_type)
-            event.Event.insert(to_insert, skip_duplicates=True, allow_direct_insert=True)
+            to_insert = prepare_timestamps(timestamps, session_key, event_type, skip_duplicates=True)
+            event.Event.insert(to_insert, skip_duplicates=True, allow_direct_insert=True, skip_duplicates=True)
