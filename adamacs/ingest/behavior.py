@@ -140,4 +140,4 @@ def ingest_aux(session_key, root_paths=get_imaging_root_data_dir(),
         
         for event_type, timestamps in event_types.items():
             to_insert = prepare_timestamps(timestamps, session_key, event_type, skip_duplicates=True)
-            event.Event.insert(to_insert, skip_duplicates=True, allow_direct_insert=True, skip_duplicates=True)
+            event.Event.insert(to_insert, skip_duplicates=True, allow_direct_insert=True)
