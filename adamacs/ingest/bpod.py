@@ -1,125 +1,130 @@
+## NEEDS FIXING - how does subclass refer to parent class?
 
+import logging
 from pathlib import Path
 import scipy.io as spio
-import datajoint as dj
-from element_interface import find_full_path
-from adamacs import db_prefix, behavior
-from adamacs.paths import get_bpod_root_data_dir, get_session_dir
+import numpy as np
+from dateutil import parser
+from element_interface.utils import find_full_path
+from ..pipeline import trial, event
+from ..paths import get_experiment_root_data_dir
 
-schema = dj.schema(db_prefix + 'bpod_ingest')
+logger = logging.getLogger("datajoint")
 
 
-@schema
-class BehaviorIngest(dj.Imported):
-    definition = """
-    -> session.Recording
-    """
+class BPodFile:
+    def __init__(self, bpod_path):
+        self.bpod_path = Path(bpod_path)
+        if not self.bpod_path.exists():
+            bpod_path_full = find_full_path(get_experiment_root_data_dir(), bpod_path)
+        else:
+            bpod_path_full = Path(bpod_path)
 
-    def make(self, key):  # reading bpod data to populate
-        # could model dir navigation after element_array_ephys
-        # which uses config file for root dir and csv for relative paths
-        # https://github.com/datajoint/workflow-array-ephys/blob/main/workflow_array_ephys/paths.py
-        bpod_root_dir = Path(get_bpod_root_data_dir(key))
-        bpod_sess_dir = Path(get_session_dir(key))
-        bpod_dir = find_full_path(bpod_root_dir, bpod_sess_dir)
+        # NOTE: Daniel made a comment that np.squeeze did work on singleton dimensions
+        #       returning empty array. Chris couldn't find the same issue
+        self._raw_data = spio.loadmat(bpod_path_full, simplify_cells=True)
 
-        bpod_filepath = next(bpod_dir.glob('*.mat'))
-        trial_info = load_bpod_matfile(key, bpod_filepath)
-        behavior.Trial.insert(trial_info, ignore_extra_fields=True)
-        behavior.Event.insert(trial_info, ignore_extra_fields=True)
+    @property
+    def start_time(self):  # bpod file creation time in UTC
+        return parser.parse(
+            str(self._raw_data["__header__"]).split("Created on:")[-1][1:-1]
+        )
+
+    @property
+    def session_data(self):
+        return self._raw_data["SessionData"]
+
+    @property
+    def bpod_version(self):
+        return self.session_data["Info"]["StateMachineVersion"].split(" ")[-1]
+
+    @property
+    def recording_duration(self):
+        return sum(
+            self.session_data["TrialEndTimestamp"]
+            - self.session_data["TrialStartTimestamp"]
+        )
+
+    @property
+    def n_trials(self):
+        return self.session_data["nTrials"]
+
+    @property
+    def trial_data(self):
+        return self.session_data["RawEvents"]["Trial"]
+
+    class Trial:
+        def __init__(self, idx):
+            self._idx = idx
+            self._parent = UNKNOWN  # TODO: figure out calling parent
+
+        @property
+        def name(self):
+            return self._parent.session_data["TrialTypeNames"][self._idx]
+
+        @property
+        def start(self):
+            return self._parent.session_data["TrialStartTimestamp"][self._idx]
+
+        @property
+        def end(self):
+            return self._parent.session_data["TrialEndTimestamp"][self._idx]
+
+        @property
+        def states(self):
+            states_dict = self._parent.trial_data[self._idx]["States"]
+            # Filter out states with all nan values:
+            return {k: v for k, v in states_dict.items() if not np.all(np.isnan(v))}
+
+        @property
+        def events(self):
+            return self._parent.trial_data[self._idx]["Events"]
+
+        @property
+        def time_to_port(self):
+            return self.states.get("WaitForResponse")
+
+        @property
+        def cue_delay(self):
+            return self.states.get("CueDelay")
+
+        @property
+        def drinking(self):
+            return self.states.get("Drinking")
+
+        @property
+        def reward(self):  # following beacon_pokes_plot.m, only first trial
+            return (
+                self.time_to_port
+                + self.session_data["TrialSettings"][0]["GUI"]["RewardDelay"]
+            )
+
+        @property  # NOTE: assumes one port in event per trial
+        def port_in(self):
+            """Returns number and timestamp of input port"""
+            ports_in = [port for port in self.events if "In" in port]
+            assert len(ports_in) == 1, (
+                "Code assumes only one port-in event per trial.\n"
+                + f"Please refactor and test with {self.bpod_path.stem}"
+            )
+            return ports_in[0][4:-2], self.events[ports_in[0]]
+
+        @property
+        def error(self):
+            return True if "Punish" in self.states else False
+
 
 # --------------------- HELPER LOADER FUNCTIONS -----------------
 
-# see full example here:
-# https://github.com/mesoscale-activity-map/map-ephys/blob/master/pipeline/ingest/behavior.py
 
-
-def load_bpod_matfile(key, matlab_filepath):
-    """
-    Loading routine for behavioral file, bpod .mat
-    """
-    # Loading the file
-    SessionData = spio.loadmat(matlab_filepath.as_posix(),
-                               squeeze_me=True, struct_as_record=False
-                               )['SessionData']
-    return SessionData
-
-# Add to dict for insertion. For example:
-# for trial in range(SessionData.nTrials):
-#     trial_info['start_time'] = SessionData.RawData.OriginalEventTimestamps[trial]
-# return trial_info
-
-
-''' NOTES on bpod example file:
-bpod SessionData structure
-    TrialTypes - 1,2,3,1,2,3
-    TrialTypeNames - Visibile,Visible,Fading
-    Info
-        StateMachineVersion
-        SessionDate
-        SessionStartTime_UTC
-        SessionStartTime_MATLAB
-    nTrials (# trials in session, here 54)
-    RawEvents (timestamps for each trial's state transitions/recorded events)
-        Trial{1,n}.States #Which of these are important?
-            WaitForPosTriggerSoftCode
-            CueDelay
-            WaitForResponse
-            Port2RewardDelay
-            Port2Reward
-            CloseValves
-            Drinking
-            Port1RewardDelay
-            Port3RewardDelay
-            Port4RewardDelay
-            Port5RewardDelay
-            Port6RewardDelay
-            Port7RewardDelay
-            Port8RewardDelay
-            Port1Reward
-            Port3Reward
-            Port4Reward
-            Port5Reward
-            Port6Reward
-            Port7Reward
-            Port8Reward
-            Punish
-            Punishexit
-            EarlyWithdrawal
-        Trial{1,n}.Events
-            Port4In
-            Port4Out
-            SoftCode10
-            Tup
-            Port2In
-            Port2Out
-    RawData (copy of raw data from state machine)
-    TrialStartTimestamp (time when trial started on Bpod's clock)
-        Note: Timestamps in RawEvents are relative to each trial's start
-    TrialEndTimestamp
-    SettingsFile (the settings file you selected in the launch manager)
-    Notes
-    MarkerCodes
-    CurrentSubjectName
-    TrialSettings
-        GUI
-        GUIMeta
-        GUIPanels
-        polling
-        debug
-        debugvis
-        Data
-        arm_number
-        arm_baited_orig
-        arm_baited
-        SF
-        rotation
-        position
-        StimAlpha
-    StimPos
-        TriggerLocPix
-        TriggerLocOptitrackHitbox
-        TriggerLocOptitrackCenter
-        TriggerLocOptitrackCircleHitRadius
-        tform
-'''
+# matlab script exact translation. Makes tuple: for any port with 'in'.
+# Not needed abov e
+def PortInEvents(bpod_session, idx):
+    """Replicate MATLAB func: return list of tuples for input ports: #, events, name"""
+    events = bpod_session["RawEvents"]["Trial"][idx]["Events"]
+    in_ports = [f for f in events.keys() if "In" in f]
+    in_port_events = []
+    for port in in_ports:
+        # (port#, event times, portname)
+        in_port_events.append((port[4:-2], events[port], port))
+    return in_port_events

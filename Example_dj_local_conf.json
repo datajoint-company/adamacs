@@ -18,13 +18,18 @@
     "database.ingest_filename_full": "",
     "custom": {
         "database.prefix": "main_",
-        "dlc_root_data_dir": [
-            "/My/Local/Dir1",
-            "/My/Local/Dir2"
+        "exp_root_data_dir": [
+            "/My/Local/BPod/Dir1",
+            "/My/Local/BPod/Dir2"
         ],
-        "dlc_output_dir": "/My/Local/Dir3/optional",
+        "dlc_root_data_dir": [
+            "/My/Local/DLC/Dir1",
+            "/My/Local/DLC/Dir2"
+        ],
+        "dlc_output_dir": "/My/Local/DLC/Dir3/optional",
         "imaging_root_data_dir" : [
-            "/datajoint-data/data/danielmk"
+            "/My/Local/Imaging/Dir1",
+            "/My/Local/Imaging/Dir2"
         ],
         "pyrat_user_token": "token",
         "pyrat_client_token": "token"

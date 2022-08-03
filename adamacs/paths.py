@@ -12,21 +12,22 @@ def get_session_dir(session_key: dict) -> str:
 
 
 # ------------------- Behavior -------------------
-def get_bpod_root_data_dir():
+def get_experiment_root_data_dir():
     """Common root directory for all bpod files"""
-    beh_root_dirs = dj.config.get('custom', {}).get('beh_root_data_dir', None)
+    beh_root_dirs = dj.config.get('custom', {}).get('exp_root_data_dir', None)
     return beh_root_dirs if beh_root_dirs else None
+
 
 def get_aux_file(scan_dir):
     """Find aux file in scan dir, which contains 'StimArenaMaster'"""
     if not scan_dir.exists():
-        raise FileNotFoundError(f'Session directory not found ({full_dir})')
+        raise FileNotFoundError(f'Scan directory not found ({scan_dir})')
 
     tiff_filepaths = [fp.as_posix() for fp in scan_dir.glob('*.tif')]
     if tiff_filepaths:
         return tiff_filepaths
     else:
-        raise FileNotFoundError(f'No tiff file found in {full_dir}')
+        raise FileNotFoundError(f'No tiff files found in {scan_dir}')
 
 
 # ------------------ DeepLabCut ------------------
@@ -47,6 +48,7 @@ def get_dlc_processed_data_dir() -> str:
     if dlc_output_dir:
         return Path(dlc_output_dir)
     else:
+        # If upgrade to element-deeplabcut 0.2, return None here
         return get_dlc_root_data_dir()[0]
 
 
@@ -63,16 +65,16 @@ def get_scan_image_files(scan_key):
     from .pipeline import session
     data_dir = get_imaging_root_data_dir()
     sess_dir = (session.SessionDirectory & scan_key).fetch1('session_dir')
-    full_dir = find_full_path(data_dir, sess_dir)
+    scan_dir = find_full_path(data_dir, sess_dir)
 
-    if not full_dir.exists():
-        raise FileNotFoundError(f'Session directory not found ({full_dir})')
+    if not scan_dir.exists():
+        raise FileNotFoundError(f'Session directory not found ({scan_dir})')
 
-    tiff_filepaths = [fp.as_posix() for fp in full_dir.glob('*.tif')]
+    tiff_filepaths = [fp.as_posix() for fp in scan_dir.glob('*.tif')]
     if tiff_filepaths:
         return tiff_filepaths
     else:
-        raise FileNotFoundError(f'No tiff file found in {full_dir}')
+        raise FileNotFoundError(f'No tiff file found in {scan_dir}')
 
 
 def get_scan_box_files(scan_key):
@@ -81,13 +83,13 @@ def get_scan_box_files(scan_key):
     from .pipeline import session
     data_dir = get_imaging_root_data_dir()
     sess_dir = (session.SessionDirectory & scan_key).fetch1('session_dir')
-    full_dir = find_full_path(data_dir, sess_dir)
+    scan_dir = find_full_path(data_dir, sess_dir)
 
-    if not full_dir.exists():
-        raise FileNotFoundError(f'Session directory not found ({full_dir})')
+    if not scan_dir.exists():
+        raise FileNotFoundError(f'Session directory not found ({scan_dir})')
 
-    sbx_filepaths = [fp.as_posix() for fp in full_dir.glob('*.sbx')]
+    sbx_filepaths = [fp.as_posix() for fp in scan_dir.glob('*.sbx')]
     if sbx_filepaths:
         return sbx_filepaths
     else:
-        raise FileNotFoundError(f'No .sbx file found in {full_dir}')
+        raise FileNotFoundError(f'No .sbx file found in {scan_dir}')

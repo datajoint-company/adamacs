@@ -19,13 +19,13 @@ session.activate(db_prefix + 'session', linking_module=__name__)
 SessionUser = session.SessionUser
 
 # Import remaining schemas ----------------------------------------------
-from adamacs.schemas import behavior, equipment
+from adamacs.schemas import equipment
 from adamacs.schemas.equipment import Equipment
 from adamacs.schemas.surgery import AnatomicalLocation as Location
 from element_calcium_imaging import scan, imaging
 from element_deeplabcut import train, model
 from element_event import event, trial
-from .paths import get_session_dir, get_bpod_root_data_dir, get_dlc_root_data_dir
+from .paths import get_session_dir, get_experiment_root_data_dir, get_dlc_root_data_dir
 from .paths import get_imaging_root_data_dir, get_scan_image_files, get_scan_box_files
 
 # Rename items for foreign key references -------------------------------
