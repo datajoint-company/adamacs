@@ -1,12 +1,11 @@
-## NEEDS FIXING - how does subclass refer to parent class?
-
 import logging
-from pathlib import Path
-import scipy.io as spio
 import numpy as np
+import datajoint as dj
+import scipy.io as spio
+from pathlib import Path
 from dateutil import parser
 from element_interface.utils import find_full_path
-from ..pipeline import trial, event
+from ..pipeline import trial, event, session
 from ..paths import get_experiment_root_data_dir
 
 logger = logging.getLogger("datajoint")
@@ -41,7 +40,7 @@ class Bpodfile(object):
         return self.session_data["Info"]["StateMachineVersion"].split(" ")[-1]
 
     @property
-    def recording_duration(self):
+    def recording_duration(self):  # In seconds
         return sum(
             self.session_data["TrialEndTimestamp"]
             - self.session_data["TrialStartTimestamp"]
@@ -57,6 +56,21 @@ class Bpodfile(object):
 
     def trial(self, idx):
         return Trial(idx, self._bpod_path_full, self.session_data, self.trial_data)
+
+    def ingest(self):
+        session_key = {
+            "session_id": (
+                dj.U().aggr(session.Session, n="max(session_id)").fetch("n") or 0
+            )
+            + 1,  # incriment previous session id by 1
+            "subject": self.session_data["CurrentSubjectName"],
+            "session_datetime": self.start_time,
+        }
+
+        with session.Session.connection.transaction:
+            session.insert1(session_key)
+            # event.insert()
+            # trial.insert()
 
 
 class Trial(object):
@@ -93,12 +107,22 @@ class Trial(object):
         return self._trial_data[self._idx]["Events"]
 
     @property
-    def time_to_port(self):
+    def _time_to_list(self):
         return self.states.get("WaitForResponse")
 
     @property
-    def cue_delay(self):
-        return self.states.get("CueDelay")
+    def time_to_port(self):
+        if len(self._time_to_list) > 1:  # Sometimes this is None
+            return self._time_to_list[1] - self._time_to_list[0]
+
+    @property
+    def time_to_target(self):
+        return self._time_to_list[0] if self._time_to_list else None
+
+    @property
+    def cue_delay(self):  # first item is 'Trigger Zone entry'. Ignore second?
+        # Below, [None] avoids TypeErr if no CueDelay
+        return self.states.get("CueDelay", [None])[0]
 
     @property
     def drinking(self):
@@ -122,6 +146,15 @@ class Trial(object):
     @property
     def error(self):
         return True if "Punish" in self.states else False
+
+    @property
+    def timeout(self):
+        return (
+            True
+            if self.time_to_port
+            >= self._session_data["TrialSettings"][self._idx]["GUI"]["ResponseTime"]
+            else False
+        )
 
 
 # --------------------- HELPER LOADER FUNCTIONS -----------------
