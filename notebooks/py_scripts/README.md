@@ -7,7 +7,6 @@ Jupyter, these will autosync on save.
 
 ```bash
 pip install jupytext
-jupytext --set-formats ipynb,py notebooks/*ipynb
-jupytext --sync notebooks/*ipynb # optional precautionary sync
-mv notebooks/*py notebooks/jupytext/
+jupytext --to py notebooks/*ipynb 
+mv notebooks/*py notebooks/py_scripts/
 ```
