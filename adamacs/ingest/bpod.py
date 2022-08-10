@@ -25,38 +25,62 @@ class Bpodfile(object):
         #       dimensions, returning empty array. Chris couldn't find the same issue
         self._raw_data = spio.loadmat(self._bpod_path_full, simplify_cells=True)
 
-    @property
-    def session_data(self):
-        return self._raw_data["SessionData"]
+        self._trials = {}  # dict to be loaded with all trials accessed
+        self.session_data = self._raw_data["SessionData"]
+        self.trial_data = self.session_data["RawEvents"]["Trial"]
+        self.n_trials = self.session_data["nTrials"]
+        self.subject_id = self.session_data["CurrentSubjectName"]
+        self.start_time = parser.parse(
+            str(self._raw_data["__header__"]).split("Created on:")[-1][1:-1]
+        )
 
     @property
-    def trial_data(self):
-        return self.session_data["RawEvents"]["Trial"]
+    def trials(self):
+        """Loads all trials for this file into memory"""
+        [self.trial(idx) for idx in range(self.n_trials)]
+        return self._trials
 
     def trial(self, idx):
-        return Trial(idx, self._bpod_path_full, self.session_data, self.trial_data)
+        """Loads a specific trial into memory using the trial index"""
+        if idx not in self._trials:
+            self._trials[idx] = Trial(
+                idx, self._bpod_path_full, self.session_data, self.trial_data
+            )
+        return self._trials[idx]
 
     def ingest(self, prompt=True):
+        """Ingest BPod data to session, event, and trial tables.
+
+        :param prompt (bool): Optional, default True. Prompt with metadata before entry.
+        """
+        # -------------------------- Check if already exists --------------------------
+        if event.BehaviorRecording.File & f"filepath='{self._bpod_path_relative}'":
+            print("Session already exists, skipping...")  # check this bpod file path
+            return
+        if not subject.Subject & f'subject="{self.subject_id}"':  # check this subject
+            from .pyrat import PyratIngestion
+
+            print(
+                f"Subject does not yet exist."
+                + f"Attempting pyrat import: {self.subject_id}"
+            )
+            PyratIngestion().ingest_animal(self.subject_id)
+
         # ------------------------------- Some constants -------------------------------
-        subject_id = self.session_data["CurrentSubjectName"]
         session_id = (  # incriment previous session id by 1
             dj.U().aggr(session.Session, n="max(session_id)").fetch("n") or 0
         ) + 1
-        start_time = parser.parse(
-            str(self._raw_data["__header__"]).split("Created on:")[-1][1:-1]
-        )
         bpod_version = self.session_data["Info"]["StateMachineVersion"].split(" ")[-1]
-        n_trials = self.session_data["nTrials"]
 
         # ------------------------------- Keys to insert -------------------------------
         session_key = {
             "session_id": session_id,
-            "subject": subject_id,
-            "session_datetime": start_time,
+            "subject": self.subject_id,
+            "session_datetime": self.start_time,
         }
         behavior_recording_key = {
             "session_id": session_id,
-            "recording_start_time": start_time,
+            "recording_start_time": self.start_time,
             "recording_duration": sum(
                 # removes time between trials, following example matlab code
                 self.session_data["TrialEndTimestamp"]
@@ -85,7 +109,7 @@ class Bpodfile(object):
                 "trial_start_time": self.trial(n).start,
                 "trial_stop_time": self.trial(n).end,
             }
-            for n in range(n_trials)
+            for n in range(self.n_trials)
         ]
         trial_attributes_keys = [
             {
@@ -94,7 +118,7 @@ class Bpodfile(object):
                 "attribute_name": attrib,
                 "attribute_value": self.trial(n).attributes[attrib],
             }
-            for n in range(n_trials)
+            for n in range(self.n_trials)
             for attrib in self.trial(n).attributes
             if self.trial(n).attributes[attrib]
         ]
@@ -102,7 +126,7 @@ class Bpodfile(object):
             {"event_type": event_type}
             for event_type in set(
                 event_type
-                for n in range(n_trials)
+                for n in range(self.n_trials)
                 for event_type in self.trial(n).events
             )
         ]
@@ -113,7 +137,7 @@ class Bpodfile(object):
                 "event_type": event,
                 "event_start_time": self.trial(n).start + event_start,
             }
-            for n in range(n_trials)
+            for n in range(self.n_trials)
             for event, event_start in self.trial(n).events.items()
             if event_start
         ]
@@ -123,9 +147,9 @@ class Bpodfile(object):
             "\n\t".join(
                 [
                     "BPod items to be inserted:",
-                    f"Subject : {subject_id}",
-                    f"Time    : {start_time}",
-                    f"N Trials: {n_trials}",
+                    f"Subject : {self.subject_id}",
+                    f"Time    : {self.start_time}",
+                    f"N Trials: {self.n_trials}",
                     f"N Events: {len(event_keys)}",
                 ]
             )
@@ -138,12 +162,6 @@ class Bpodfile(object):
             return
 
         # ----------------------------- Insert to schemas -----------------------------
-        if not subject.Subject & f'subject="{subject_id}"':
-            from .pyrat import PyratIngestion
-
-            print(f"Subject does not yet exist. Attempting pyrat import: {subject_id}")
-            PyratIngestion().ingest_animal(subject_id)
-
         with session.Session.connection.transaction:
             session.Session.insert1(session_key, skip_duplicates=True)  # remove skip
             event.BehaviorRecording.insert1(behavior_recording_key)
@@ -167,11 +185,19 @@ class Trial(object):
         if not trial_data:
             trial_data = Bpodfile(bpod_path_full).trial_data
 
-        # internal properties for args above
+        # -- properties --
+        # for args above
         self._idx = idx
         self._bpod_path_full = bpod_path_full
         self._session_data = session_data
         self._trial_data = trial_data
+        # for general use
+        self.type = self._session_data["TrialTypeNames"][self._idx]
+        self.start = self._session_data["TrialStartTimestamp"][self._idx]
+        self.end = self._session_data["TrialEndTimestamp"][self._idx]
+        # lazy loading
+        self._attributes = {}
+        self._events = {}
 
         # clean up bpod states
         self._states = {
@@ -197,48 +223,42 @@ class Trial(object):
         self._port_in = ports_in[0] if ports_in else None
 
     @property
-    def type(self):
-        return self._session_data["TrialTypeNames"][self._idx]
-
-    @property
-    def start(self):
-        return self._session_data["TrialStartTimestamp"][self._idx]
-
-    @property
-    def end(self):  # in element, stop_time
-        return self._session_data["TrialEndTimestamp"][self._idx]
-
-    @property
     def attributes(self):
         """Returns all attributes for trial.Trial.Attributes as a dict"""
-        return {
-            "port_num": self._port_in[4:-2] if self._port_in else None,
-            "error": True if "Punish" in self._states else False,
-            "timeout": (
-                True
-                if self._time_to_port
-                and self._time_to_port
-                >= self._session_data["TrialSettings"][self._idx]["GUI"]["ResponseTime"]
-                else False
-            ),
-        }
+        if not self._attributes:
+            self._attributes = {
+                "port_num": self._port_in[4:-2] if self._port_in else None,
+                "error": True if "Punish" in self._states else False,
+                "timeout": (
+                    True
+                    if self._time_to_port
+                    and self._time_to_port
+                    >= self._session_data["TrialSettings"][self._idx]["GUI"][
+                        "ResponseTime"
+                    ]
+                    else False
+                ),
+            }
+        return self._attributes
 
     @property
     def events(self):
         """Returns trial events as a dict {event_type: event_time} WRT trial start"""
-        return {
-            "cue": self._states.get("CueDelay", [None])[0],
-            "at_target": self._resp_delay[0] if self._resp_delay[0] else None,
-            "at_port": self._time_to_port,
-            "reward": (
-                self._time_to_port
-                + self._session_data["TrialSettings"][0]["GUI"]["RewardDelay"]
-                if self._time_to_port
-                else None
-            ),
-            "in_port": self._raw_events[self._port_in] if self._port_in else None,
-            "drinking": self._states.get("Drinking", [None])[0],
-        }
+        if not self._events:
+            self._events = {
+                "cue": self._states.get("CueDelay", [None])[0],
+                "at_target": self._resp_delay[0] if self._resp_delay[0] else None,
+                "at_port": self._time_to_port,
+                "reward": (
+                    self._time_to_port
+                    + self._session_data["TrialSettings"][0]["GUI"]["RewardDelay"]
+                    if self._time_to_port
+                    else None
+                ),
+                "in_port": self._raw_events[self._port_in] if self._port_in else None,
+                "drinking": self._states.get("Drinking", [None])[0],
+            }
+        return self._events
 
 
 # --------------------- HELPER LOADER FUNCTIONS -----------------
