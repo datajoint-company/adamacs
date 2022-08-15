@@ -24,6 +24,7 @@ class User(dj.Lookup):
     user_id        : int
     ---
     name           : varchar(32)
+    initials=''    : varchar(2)  # Update after pyrat ingestion
     -> [nullable] Lab
     """
 
