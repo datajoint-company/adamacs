@@ -31,7 +31,9 @@ class Bpodfile(object):
         self.n_trials = self.session_data["nTrials"]
         self.subject_id = self.session_data["CurrentSubjectName"]
         self.start_time = parser.parse(
-            str(self._raw_data["__header__"]).split("Created on:")[-1][1:-1]
+            self.session_data["Info"]["SessionDate"]  # format: 18-Mar-2022
+            + " "
+            + self.session_data["Info"]["SessionStartTime_UTC"]  # format: 16:55:28
         )
 
     @property
@@ -87,7 +89,6 @@ class Bpodfile(object):
                 - self.session_data["TrialStartTimestamp"]
             ),
             "recording_notes": f"BPod version: {bpod_version}",
-            # TODO: add self.session_data['Notes']? is it used?
         }
         behavior_recording_fp_key = {
             "session_id": session_id,
@@ -215,19 +216,17 @@ class Trial(object):
 
         # clean up bpod port events
         self._raw_events = self._trial_data[self._idx]["Events"]
-        ports_in = [port for port in self._raw_events if "In" in port]
-        assert len(ports_in) <= 1, (
-            "BPod ingestion assumes up to 1 PortIn per trial. Please refactor for trial"
-            + f"{self._idx} of\n{self._bpod_path_full.name}"
-        )
-        self._port_in = ports_in[0] if ports_in else None
+        self._ports_in = {
+            f"in_port_{port[4:-2]}": self._raw_events[port]  # e.g., in_port_2: 8.3
+            for port in self._raw_events
+            if "In" in port
+        }
 
     @property
     def attributes(self):
         """Returns all attributes for trial.Trial.Attributes as a dict"""
         if not self._attributes:
             self._attributes = {
-                "port_num": self._port_in[4:-2] if self._port_in else None,
                 "error": True if "Punish" in self._states else False,
                 "timeout": (
                     True
@@ -255,7 +254,7 @@ class Trial(object):
                     if self._time_to_port
                     else None
                 ),
-                "in_port": self._raw_events[self._port_in] if self._port_in else None,
+                **self._ports_in,
                 "drinking": self._states.get("Drinking", [None])[0],
             }
         return self._events
