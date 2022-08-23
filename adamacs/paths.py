@@ -13,7 +13,7 @@ def get_session_dir(session_key: dict) -> str:
 
 # ------------------- Behavior -------------------
 def get_experiment_root_data_dir():
-    """Common root directory for all bpod files"""
+    """Common root directory for all bpod and aux files"""
     beh_root_dirs = dj.config.get('custom', {}).get('exp_root_data_dir', None)
     return beh_root_dirs if beh_root_dirs else None
 
