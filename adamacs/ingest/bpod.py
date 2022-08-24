@@ -2,6 +2,7 @@ import numpy as np
 import datajoint as dj
 import scipy.io as spio
 from pathlib import Path
+from bisect import bisect
 from dateutil import parser
 from element_interface.utils import find_full_path, find_root_directory
 from ..pipeline import subject, session, trial, event
@@ -157,6 +158,17 @@ class Bpodfile(object):
             for event, event_start in self.trial(n).events.items()
             if event_start
         ]
+        event_keys.extend(
+            [  # add reward times from aux
+                {
+                    "session_id": session_id,
+                    "trial_id": bisect(aux_trials, reward) - 1,  # finds trial ID
+                    "event_type": "reward",
+                    "event_start_time": reward,
+                }
+                for reward in aux_rewards
+            ]
+        )
 
         # ---------------------------------- Prompt ----------------------------------
         print(
@@ -265,12 +277,13 @@ class Trial(object):
                 "cue": self._states.get("CueDelay", [None])[0],
                 "at_target": self._resp_delay[0] if self._resp_delay[0] else None,
                 "at_port": self._time_to_port,
-                "reward": (  # NOTE: returns time for most trials. Aux only has one
-                    self._time_to_port
-                    + self._session_data["TrialSettings"][0]["GUI"]["RewardDelay"]
-                    if self._time_to_port
-                    else None
-                ),
+                # "reward": (
+                #     # NOTE: Now taking reward events from Aux
+                #     self._time_to_port
+                #     + self._session_data["TrialSettings"][0]["GUI"]["RewardDelay"]
+                #     if self._time_to_port
+                #     else None
+                # ),
                 **self._ports_in,
                 "drinking": self._states.get("Drinking", [None])[0],
             }
