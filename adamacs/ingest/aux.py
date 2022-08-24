@@ -43,7 +43,7 @@ class Auxfile(object):
 
     @property
     def _digital(self, channels=5):  # this process could be time-consuming
-        if not self._digital_channels:
+        if len(self._digital_channels) == 0:
             auxdata = self._raw[self._sweep]["digitalScans"][0].flatten()
             binary = [[int(x) for x in f"{x:0{channels}b}"] for x in auxdata]
             self._digital_channels = np.array(binary, dtype=bool).T
@@ -53,20 +53,20 @@ class Auxfile(object):
     def main_track_gate(self):
         """Main track gate start time"""
         if not self._gate:
-            self._gate = get_timestamps(self._digital[4], self._sample_rate)
+            self._gate = get_timestamps(self._digital[4], self._sample_rate)[0]
         return self._gate
 
     @property
     def shutter_timestamps(self):
         """Laser shutter"""
-        if not self._shutter:
+        if not any(self._shutter):
             self._shutter = get_timestamps(self._digital[3], self._sample_rate)
         return self._shutter
 
     @property
     def mini2p_channels(self):
         """Dict of arrays for frame, line and volume"""
-        if not self._2p:
+        if not any(self._2p):
             self._2p = {  # vol and frame are the same in sample data
                 "frame": get_timestamps(self._digital[2], self._sample_rate),
                 "line": get_timestamps(self._digital[1], self._sample_rate),
@@ -77,7 +77,7 @@ class Auxfile(object):
     @property
     def cam_trigger(self):
         """Tracking camera trigger"""
-        if not self._cam:
+        if not any(self._cam):
             self._cam = get_timestamps(
                 self._raw[self._sweep]["analogScans"][0], self._sample_rate
             )
@@ -86,6 +86,7 @@ class Auxfile(object):
     @property
     def bpod_channels(self):
         """Dict of arrays for trial, reward and tone"""
+        # NOTE: In example aux, one reward pulse. BPod code registers more
         if not self._bpod:
             self._bpod = {
                 "trial": get_timestamps(
@@ -94,7 +95,7 @@ class Auxfile(object):
                 "reward": get_timestamps(
                     self._raw[self._sweep]["analogScans"][2], self._sample_rate
                 ),
-                "tone": get_timestamps(
+                "tone": get_timestamps(  # approx eq trial times with reqard times
                     self._raw[self._sweep]["analogScans"][3], self._sample_rate
                 ),
             }
@@ -104,12 +105,14 @@ class Auxfile(object):
 # --------------------- HELPER LOADER FUNCTIONS -----------------
 
 
-def get_timestamps(data, sample_rate, threshold=1):
+def get_timestamps(data, sample_rate, threshold=1, rising_pulse=True):
     """Given data and sample rate, take vals above threshold and return rising times
 
     :param data (numpy array): Raw or analog signal from aux file
     :param sample_rate (float): acquistion sample rate from aux header
     :param threshold (float): Optional, default 1. If data is boolean, ignored.
+    :param rising_pulse (bool): Optional, default True. Take even pulses from signal
+                                If False, returns all available timestamps
     :returns timestamps (nump array)
     """
     if data.dtype == "bool":
@@ -117,8 +120,9 @@ def get_timestamps(data, sample_rate, threshold=1):
     else:
         data = data > threshold
 
-    diff = np.diff(data)
-    idc = np.argwhere(diff != 0)[:, 0]
-    timestamps = idc / sample_rate
+    timestamps = np.argwhere(np.diff(data) != 0)[:, 0] / sample_rate
 
-    return timestamps[::2]  # take even items (rising pulse)
+    if rising_pulse:
+        return timestamps[::2]  # take even items (rising pulse)
+    else:
+        return timestamps
