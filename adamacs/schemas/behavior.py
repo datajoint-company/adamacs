@@ -96,3 +96,53 @@ class BehaviorTrial(dj.Imported):
         ---
         variable_value: varchar(2000)
         """
+
+
+
+@schema
+class HarpDevice(dj.Manual):
+    definition = """
+    -> session.Session
+    harp_device_id: int
+    ---
+    harp_device_name: varchar(36)
+    harp_device_description='': varchar(1000)
+    """
+
+
+@schema
+class HarpRecording(dj.Imported):
+    definition = """
+    -> HarpDevice
+    ---
+    recording_duration=null: float  # duration (in seconds) of the harp acquisition 
+    timestamps: longblob  # 1d array of timestamps (in seconds) of the acquired channel data
+    """
+
+    class Channel(dj.Part):
+        definition = """
+        -> master
+        channel_id: ing
+        ---
+        channel_name: varchar(36)
+        trace: longblob  # 1d array of acquired data for this channel, same size as the "timestamps" array
+        """
+
+    def make(self, key):
+        aux_fp = get_aux_file_fullpath(key)
+        loaded_aux = AuxLoader(aux_fp)
+
+        timestamps = loaded_aux.timestamps
+
+        channels = []
+        for aux_channel in loaded_aux.channels:
+            trace = aux_channel.data
+            assert len(trace) == len(timestamps)
+            channels.append({**key,
+                         'channel_id'=aux_channel.id,
+                         'channel_name'=aux_channel.name,
+                         'trace'=trace})
+        
+        self.insert1({**key, 'recording_duration': loaded_aux.duration, 'timestamps': timestamps})
+        self.Channel.insert(channels)
+        
