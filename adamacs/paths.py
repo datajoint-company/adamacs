@@ -13,22 +13,9 @@ def get_session_dir(session_key: dict) -> str:
 
 # ------------------- Behavior -------------------
 def get_experiment_root_data_dir():
-    """Common root directory for all bpod and aux files"""
+    """Common root directory for all bpod, harp, and aux files"""
     beh_root_dirs = dj.config.get('custom', {}).get('exp_root_data_dir', None)
     return beh_root_dirs if beh_root_dirs else None
-
-
-def get_aux_file(scan_dir):
-    """Find aux file in scan dir, which contains 'StimArenaMaster'"""
-    if not scan_dir.exists():
-        raise FileNotFoundError(f'Scan directory not found ({scan_dir})')
-
-    tiff_filepaths = [fp.as_posix() for fp in scan_dir.glob('*.tif')]
-    if tiff_filepaths:
-        return tiff_filepaths
-    else:
-        raise FileNotFoundError(f'No tiff files found in {scan_dir}')
-
 
 # ------------------ DeepLabCut ------------------
 def get_dlc_root_data_dir():
