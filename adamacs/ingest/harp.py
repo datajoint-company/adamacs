@@ -88,7 +88,7 @@ class HarpLoader:
                         self._reg34data.append(int.from_bytes(message[25:27], "little"))
                         self._reg34data.append(int.from_bytes(message[27:29], "little"))
 
-        self._data_series = {
+        self._data_dict = {
             "34_time": self._reg34time,
             "34_data": self._reg34data,
             "35_time": self._reg35time,
@@ -98,13 +98,46 @@ class HarpLoader:
         }
 
     def data(self):
-        return self._data_series
+        return self._data_dict
+
+    def data_for_insert(self):
+        return [
+            {
+                "channel_name": "Register 34",
+                "data": self._reg34data,
+                "time": self._reg34time,
+            },
+            {
+                "channel_name": "Register 35",
+                "data": self._reg35data,
+                "time": self._reg35time,
+            },
+            {
+                "channel_name": "DI0",
+                "data": self._reg35DI0,
+                "time": [],
+            },
+            {
+                "channel_name": "DI1",
+                "data": self._reg35DI1,
+                "time": [],
+            },
+        ]
 
     def data_as_pandas(self):
         import pandas as pd
 
+        self._data_dict = {
+            "34_time": self._reg34time,
+            "34_data": self._reg34data,
+            "35_time": self._reg35time,
+            "35_data": self._reg35data,
+            "35_DI0_": self._reg35DI0,
+            "35_DI1_": self._reg35DI1,
+        }
+
         return pd.DataFrame(
-            dict([(k, pd.Series(v)) for k, v in self._data_series.items()])
+            dict([(k, pd.Series(v)) for k, v in self._data_dict.items()])
         )
 
 

@@ -6,25 +6,22 @@ raw data and relates them to the Recording.
 """
 
 import datajoint as dj
-from ..pipeline import session, db_prefix
-from ..paths import get_harp_filepath
+from ..pipeline import session, event, db_prefix
+from ..paths import get_experiment_root_data_dir
 from ..ingest.harp import HarpLoader
+from element_interface.utils import find_full_path
 
 schema = dj.schema(db_prefix + "behavior")
 
-__all__ = [
-    "session",
-    "db_prefix",
-    "HarpDevice",
-    "HarpRecording"
-]
+__all__ = ["session", "db_prefix", "HarpDevice", "HarpRecording"]
 
 # -------------- Table declarations --------------
 
 # NOTE: Previous tables depreciated with the use of element-event
 
+
 @schema
-class HarpDevice(dj.Manual):
+class HarpDevice(dj.Lookup):
     definition = """
     harp_device_id: int
     ---
@@ -32,47 +29,43 @@ class HarpDevice(dj.Manual):
     harp_device_description='': varchar(1000)
     """
 
+    contents = [(1, "example_a", "description"), (2, "example_b", "description")]
+
 
 @schema
-class HarpRecording(dj.Imported):
+class HarpRecording(dj.Manual):
     definition = """
-    -> session.Session
+    -> event.BehaviorRecording
     -> HarpDevice
-    ---
-    recording_duration=null: float  # duration (in seconds) of the harp acquisition 
-    timestamps: longblob  # 1d array of timestamps (in seconds) of the acquired channel data
+    """
+
+
+@schema
+class HarpData(dj.Imported):
+    definition = """
+    -> HarpRecording
     """
 
     class Channel(dj.Part):
         definition = """
         -> master
-        channel_id: int
-        ---
         channel_name: varchar(36)
-        trace: longblob  # 1d array of acquired data for this channel, same size as the "timestamps" array
+        ---
+        data=null : longblob  # 1d array of acquired data for this channel
+        time=null : longblob  # 1d array of timestamps for this channel 
         """
 
     def make(self, key):
-        pass
-        # aux_fp = get_harp_filepath(key)
-        # loaded_aux = HarpLoader(aux_fp)
+        bpod_path_relative = (event.BehaviorRecording.File & key).fetch1("filepath")
+        harp_paths = list(find_full_path(
+            get_experiment_root_data_dir(), bpod_path_relative
+        ).parent.glob("*harp*bin"))
+        assert len(harp_paths) == 1, f"Found more than one harp file\n\t{harp_paths}"
 
-        # timestamps = loaded_aux.timestamps
-
-        # channels = []
-        # for aux_channel in loaded_aux.channels:
-        #     trace = aux_channel.data
-        #     assert len(trace) == len(timestamps)
-        #     channels.append(
-        #         {
-        #             **key,
-        #             "channel_id": aux_channel.id,
-        #             "channel_name": aux_channel.name,
-        #             "trace": trace,
-        #         }
-        #     )
-
-        # self.insert1(
-        #     {**key, "recording_duration": loaded_aux.duration, "timestamps": timestamps}
-        # )
-        # self.Channel.insert(channels)
+        self.insert1(key)
+        self.Channel.insert(
+            [
+                {**key, **channel} 
+                for channel in HarpLoader(harp_paths[0]).data_for_insert()
+            ]
+        )
