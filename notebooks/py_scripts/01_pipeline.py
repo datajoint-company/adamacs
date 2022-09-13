@@ -6,11 +6,11 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.13.7
+#       jupytext_version: 1.14.1
 #   kernelspec:
-#     display_name: bonn
+#     display_name: Python 3 (ipykernel)
 #     language: python
-#     name: bonn
+#     name: python3
 # ---
 
 # # Pipeline Activation
@@ -51,7 +51,7 @@
 #         "dlc_output_dir": "/My/Local/Dir3/optional",
 #         "imaging_root_data_dir" : [
 #             "/My/Local/Dir4",
-#             "/My/Local/Dir5",
+#             "/My/Local/Dir5"
 #         ],
 #         "pyrat_user_token": "token",
 #         "pyrat_client_token": "token"
@@ -62,6 +62,9 @@
 
 # Move to detect local config:
 
+import datajoint as dj
+dj.config
+
 import os
 if os.path.basename(os.getcwd())=='notebooks': os.chdir('..')
 assert os.path.basename(os.getcwd())=='adamacs', ("Please move to the main directory")
@@ -70,8 +73,8 @@ import datajoint as dj; dj.conn()
 # Alternatively, set login information during this session:
 
 import datajoint as dj; import getpass
-dj.config['database.host'] = '{SERVER_NAME}'
-dj.config['database.user'] = '{USER_NAME}'
+dj.config['database.host'] = '172.26.128.53'
+dj.config['database.user'] = 'danielmk'
 dj.config['database.password'] = getpass.getpass() # enter the password securily
 dj.conn()
 
@@ -81,7 +84,6 @@ dj.conn()
 #
 # `adamacs/pipeline.py` includes all the pieces required to activate the whole pipeline via import.
 
-import datajoint as dj
 from adamacs.pipeline import subject, session, surgery, session, behavior, equipment, \
                              imaging, scan, train, model
 
@@ -92,5 +94,7 @@ dj.Diagram(session) + dj.Diagram(subject)
 dj.Diagram(subject) + dj.Diagram(behavior) 
 
 dj.Diagram(subject) + dj.Diagram(model)
+
+
 
 

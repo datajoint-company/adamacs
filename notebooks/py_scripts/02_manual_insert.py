@@ -6,11 +6,11 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.13.7
+#       jupytext_version: 1.14.1
 #   kernelspec:
-#     display_name: bonn
+#     display_name: Python 3 (ipykernel)
 #     language: python
-#     name: bonn
+#     name: python3
 # ---
 
 # # Subject Related Data
@@ -40,8 +40,8 @@ dj.conn()
 # ## Activation
 # Next, import from `adamacs.pipeline` to activate the relevant schema.
 
-from adamacs.utility import *
-from adamacs.nbgui import *
+# from adamacs.utility import *
+# from adamacs.nbgui import *
 from adamacs.pipeline import subject
 
 # Assign easy names for relevant tables
@@ -68,7 +68,7 @@ mouse_gui.app
 # ### Lab
 
 # +
-lab_key = 'Beck'  # Short, unique identifier for the lab. Maximum 8 characters. Example: 'Rose'.
+lab_key = 'Rose'  # Short, unique identifier for the lab. Maximum 8 characters. Example: 'Rose'.
 lab_name = 'Neuronal input-output computation during cognition'  # A longer, more descriptive name for the laboratory.
 institution = 'Institute for Experimental Epileptology and Cognition Research'  # The institution the laboratory belongs to.
 address = 'Venusberg-Campus 1, 53127 Bonn'  # The postal address of the laboratory.
@@ -88,8 +88,8 @@ protocol.insert1((protocol_key, protocol_description))
 # ### User Entry
 
 # insert multiple entries
-data = [{'user_id': 1, 'name': 'natashak', 'lab': lab_key},
-        {'user_id': 2, 'name': 'georgejk', 'lab': lab_key}]
+data = [{'user_id': 1, 'name': 'natashak', 'lab': 'Rose'},
+        {'user_id': 2, 'name': 'georgejk', 'lab': 'Rose'}]
 user.insert(data)
 
 # ### Line/Mutation
@@ -109,16 +109,35 @@ mutation.insert1((line_id, mutation_id, mutation_description))
 # ### Subject
 
 # +
+subject_id = 'Testmouse1'
+earmark = ''
+sex = 'F'
+birth_date = ''
+subject_description = ''
+generation = ''
+parents = {}
+owner_id = ''
+responsible_id = ''
+line_id = ''
+protocol_key = 'LANUF3'
+
+sub.insert1((subject_id, earmark, sex, birth_date, subject_description, generation, 
+             parents, owner_id, responsible_id, line_id, protocol_key))
+# -
+
+sub
+
+# +
 subject_id = 'WEZ-8701'
-earmark = 'G155'
+earmark = ''
 sex = 'M'
-birth_date = '2010-08-20'
-subject_description = 'Basic Mouse'
-generation = 'F2'
-parents = {'m': 'Rose_ROS-0001', 'f' : 'Rose_ROS-0002'}
-owner_id = 1
-responsible_id = 2
-line_id = 1
+birth_date = ''
+subject_description = ''
+generation = ''
+parents = ''
+owner_id = ''
+responsible_id = ''
+line_id = ''
 protocol_key = 'LANUF3'
 
 sub.insert1((subject_id, earmark, sex, birth_date, subject_description, generation, 
@@ -176,5 +195,7 @@ subject_genotype
 # List of dictionaries:
 
 (subject_genotype & 'subject="Rose_ROS-0019"').fetch(as_dict=True)
+
+user
 
 
