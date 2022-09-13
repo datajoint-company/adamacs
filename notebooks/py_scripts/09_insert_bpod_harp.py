@@ -34,7 +34,7 @@ dj.config['database.user'] = 'danielmk'             # Put your user name between
 dj.config['database.password'] = getpass.getpass(prompt='Database password:')
 dj.conn()
 
-# ## BPod Imports and Root Path Setup
+# ### BPod Path Setup
 
 # Your `dj.config` file should have a section for your BPod root directory under `custom`: `exp_root_data_dir`. This is a list of one or more paths where the ingestion tool will look for the relative paths it is given.
 
@@ -52,7 +52,7 @@ bpod_path_full = find_full_path(get_experiment_root_data_dir(),bpod_path)
 print(f"Root: {root_dirs}\nFull: {bpod_path_full}")
 # -
 
-# ## Initial check of tables
+# ### Initial check of tables
 
 # +
 from adamacs.pipeline import session, event, trial
@@ -85,16 +85,10 @@ bpod_object.trial(1).events
 
 from adamacs.pipeline import behavior, event
 event_recording = event.BehaviorRecording.fetch('KEY')[0]
-behavior.HarpRecording.insert1({**event_recording,'harp_device_id':1},
-                               skip_duplicates=True)
-event_recording
-
 behavior.HarpRecording()
 
-behavior.HarpData.populate()
+behavior.HarpRecording.populate()
 
-behavior.HarpData()
-
-behavior.HarpData.Channel()
+behavior.HarpRecording.Channel()
 
 

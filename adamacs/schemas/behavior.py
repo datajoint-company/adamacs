@@ -29,21 +29,14 @@ class HarpDevice(dj.Lookup):
     harp_device_description='': varchar(1000)
     """
 
-    contents = [(1, "example_a", "description"), (2, "example_b", "description")]
+    contents = [(1, "example_a", "description")]
 
 
 @schema
-class HarpRecording(dj.Manual):
+class HarpRecording(dj.Imported):
     definition = """
     -> event.BehaviorRecording
     -> HarpDevice
-    """
-
-
-@schema
-class HarpData(dj.Imported):
-    definition = """
-    -> HarpRecording
     """
 
     class Channel(dj.Part):
