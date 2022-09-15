@@ -2,10 +2,12 @@ import numpy as np
 import datajoint as dj
 import scipy.io as spio
 from pathlib import Path
+from bisect import bisect
 from dateutil import parser
 from element_interface.utils import find_full_path, find_root_directory
 from ..pipeline import subject, session, trial, event
 from ..paths import get_experiment_root_data_dir
+from .aux import Auxfile
 
 
 class Bpodfile(object):
@@ -50,6 +52,19 @@ class Bpodfile(object):
             )
         return self._trials[idx]
 
+    def _aux_timestamps(self):
+        aux_paths = list(self._bpod_path_full.parent.glob("*h5"))
+        assert len(aux_paths) == 1, f"Found more than one Aux h5 file\n{aux_paths}"
+        aux = Auxfile(aux_paths[0])
+        aux_onset = aux.main_track_gate  # master trigger
+        aux_trials = aux.bpod_channels["trial"] - aux_onset  # trial times wrt trigger
+        aux_rewards = aux.bpod_channels["reward"] - aux_onset  # rewards wrt trigger
+        assert len(aux_trials) == self.n_trials, (
+            "Number of trials do not match: "
+            + f"BPod {self.n_trials} vs. Aux {len(aux_trials)}"
+        )
+        return aux_trials, aux_rewards
+
     def ingest(self, prompt=True):
         """Ingest BPod data to session, event, and trial tables.
 
@@ -73,6 +88,7 @@ class Bpodfile(object):
             dj.U().aggr(session.Session, n="max(session_id)").fetch("n") or 0
         ) + 1
         bpod_version = self.session_data["Info"]["StateMachineVersion"].split(" ")[-1]
+        aux_trials, aux_rewards = self._aux_timestamps()
 
         # ------------------------------- Keys to insert -------------------------------
         session_key = {
@@ -107,8 +123,8 @@ class Bpodfile(object):
                 "session_id": session_id,
                 "trial_id": n,
                 "trial_type": self.trial(n).type,
-                "trial_start_time": self.trial(n).start,
-                "trial_stop_time": self.trial(n).end,
+                "trial_start_time": aux_trials[n],
+                "trial_stop_time": aux_trials[n] + self.trial(n).duration,
             }
             for n in range(self.n_trials)
         ]
@@ -136,12 +152,23 @@ class Bpodfile(object):
                 "session_id": session_id,
                 "trial_id": n,
                 "event_type": event,
-                "event_start_time": self.trial(n).start + event_start,
+                "event_start_time": aux_trials[n] + event_start,
             }
             for n in range(self.n_trials)
             for event, event_start in self.trial(n).events.items()
             if event_start
         ]
+        event_keys.extend(
+            [  # add reward times from aux
+                {
+                    "session_id": session_id,
+                    "trial_id": bisect(aux_trials, reward) - 1,  # finds trial ID
+                    "event_type": "reward",
+                    "event_start_time": reward,
+                }
+                for reward in aux_rewards
+            ]
+        )
 
         # ---------------------------------- Prompt ----------------------------------
         print(
@@ -194,8 +221,10 @@ class Trial(object):
         self._trial_data = trial_data
         # for general use
         self.type = self._session_data["TrialTypeNames"][self._idx]
-        self.start = self._session_data["TrialStartTimestamp"][self._idx]
-        self.end = self._session_data["TrialEndTimestamp"][self._idx]
+        self.duration = (  # endtime - start time. Will use Aux start time above
+            self._session_data["TrialEndTimestamp"][self._idx]
+            - self._session_data["TrialStartTimestamp"][self._idx]
+        )
         # lazy loading
         self._attributes = {}
         self._events = {}
@@ -248,12 +277,13 @@ class Trial(object):
                 "cue": self._states.get("CueDelay", [None])[0],
                 "at_target": self._resp_delay[0] if self._resp_delay[0] else None,
                 "at_port": self._time_to_port,
-                "reward": (
-                    self._time_to_port
-                    + self._session_data["TrialSettings"][0]["GUI"]["RewardDelay"]
-                    if self._time_to_port
-                    else None
-                ),
+                # "reward": (
+                #     # NOTE: Now taking reward events from Aux
+                #     self._time_to_port
+                #     + self._session_data["TrialSettings"][0]["GUI"]["RewardDelay"]
+                #     if self._time_to_port
+                #     else None
+                # ),
                 **self._ports_in,
                 "drinking": self._states.get("Drinking", [None])[0],
             }

@@ -6,93 +6,59 @@ raw data and relates them to the Recording.
 """
 
 import datajoint as dj
-from ..pipeline import session
-from .. import db_prefix
-# db_prefix + 'behavior'
-schema = dj.schema(db_prefix + 'behavior')
+from ..pipeline import session, event, db_prefix
+from ..paths import get_experiment_root_data_dir
+from ..ingest.harp import HarpLoader
+from element_interface.utils import find_full_path
 
-__all__ = ['session', 'RecordingBpod', 'TrialType', 'Trial', 'EventType', 'Event',
-           'TrialEvent', 'BehaviorTrial', 'db_prefix']
+schema = dj.schema(db_prefix + "behavior")
+
+__all__ = ["session", "db_prefix", "HarpDevice", "HarpRecording"]
 
 # -------------- Table declarations --------------
 
+# NOTE: Previous tables depreciated with the use of element-event
+
 
 @schema
-class RecordingBpod(dj.Manual):
+class HarpDevice(dj.Lookup):
     definition = """
-    # CB: Does this recording_dir differ from session.Recording recording_dir?
-    -> session.Session
+    harp_device_id: int
     ---
-    recording_dir : varchar(1024) # Path to the data directory for a particular session
+    harp_device_name: varchar(36)
+    harp_device_description='': varchar(1000)
     """
+
+    contents = [(1, "example_a", "description")]
 
 
 @schema
-class TrialType(dj.Lookup):
+class HarpRecording(dj.Imported):
     definition = """
-    trial_type: varchar(16)
-    ---
-    trial_type_description: varchar(256)
+    -> event.BehaviorRecording
+    -> HarpDevice
     """
 
-
-@schema
-class Trial(dj.Imported):
-    definition = """
-    # CB modeled after example bpod datastructure
-    # each recording has a list of trials
-    -> session.Session
-    trial : smallint # trial number (1-based indexing)
-    ---
-    start_time : float  # (second) relative to the start of the recording
-    stop_time :  float  # (second) relative to the start of the recording
-    """
-
-
-@schema
-class EventType(dj.Lookup):
-    definition = """
-    event_type: varchar(255)
-    ---
-    event_type_description='': varchar(256)
-    """
-
-    contents = [('WaitForPosTriggerSoftCode', ''), ('CueDelay', '')]
-
-
-@schema
-class Event(dj.Imported):
-    definition = """
-    -> session.Session
-    -> EventType
-    event_start_time: decimal(8, 4)   # (s) from recording start
-    ---
-    event_end_time=null: decimal(8, 4)   # (s) from recording start
-    """
-
-
-@schema
-class TrialEvent(dj.Imported):
-
-    definition = """
-    -> Trial
-    -> Event
-    """
-
-
-@schema
-class BehaviorTrial(dj.Imported):
-    definition = """
-    -> Trial
-    ---
-    -> TrialType
-    # -> Outcome
-    """
-
-    class TrialVariable(dj.Part):
+    class Channel(dj.Part):
         definition = """
         -> master
-        variable_name: varchar(16)
+        channel_name: varchar(36)
         ---
-        variable_value: varchar(2000)
+        data=null : longblob  # 1d array of acquired data for this channel
+        time=null : longblob  # 1d array of timestamps for this channel 
         """
+
+    def make(self, key):
+        bpod_path_relative = (event.BehaviorRecording.File & key).fetch1("filepath")
+        harp_paths = list(find_full_path(
+            get_experiment_root_data_dir(), bpod_path_relative
+        ).parent.glob("*harp*bin"))
+        assert len(harp_paths) == 1, f"Found more than one harp file\n\t{harp_paths}"
+
+        self.insert1(key)
+        self.Channel.insert(
+            [
+                {**key, **channel} 
+                for channel in HarpLoader(harp_paths[0]).data_for_insert()
+            ]
+        )

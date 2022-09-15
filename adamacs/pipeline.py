@@ -47,3 +47,6 @@ imaging.activate(db_prefix + 'imaging',
 trial.activate(db_prefix + 'trial',
                db_prefix + 'event',
                linking_module=__name__)
+
+# Behavior downstream of event
+from adamacs.schemas import behavior
